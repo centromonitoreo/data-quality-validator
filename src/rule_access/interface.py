@@ -7,3 +7,7 @@ class IRulesReader(ABC):
     @abstractmethod
     def get_validators(self, thematic:str) -> List[IValidator]:
         pass
+
+    @abstractmethod
+    def get_validate_args(self, validator: IValidator):
+        pass

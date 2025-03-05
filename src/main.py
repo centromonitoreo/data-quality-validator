@@ -1,5 +1,4 @@
+from engine.validation_engine import ValidationEngine
 
-from services.implements.default_tables_services import TableServiceImpl
-
-
-list_service =  TableServiceImpl().get_tables_by_thematic("Monitoreo Agua Superficial")
+def validate_data(thematic:str, rule_reader: str, erro_handlers:str, data_reader:str, **kwargs):
+    validation_engine = ValidationEngine(thematic, data_reader, rule_reader, erro_handlers, **kwargs)
