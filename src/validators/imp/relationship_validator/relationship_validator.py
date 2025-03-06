@@ -1,7 +1,7 @@
 
 from validators.interface import IValidator
 from validators.imp.relationship_validator.schemas.shemas import RelationshipData
-
+from typing import List
 
 class RelationshipDataValidator(IValidator):
 
@@ -16,5 +16,5 @@ class RelationshipDataValidator(IValidator):
 
 
     def validate_inputs(self):
-        if self.relationship_data is None or isinstance(self.relationship_data, RelationshipData):
+        if self.relationship_data is None or isinstance(self.relationship_data, List[RelationshipData]):
             raise ValueError(f"❌ ")

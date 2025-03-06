@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from database.models.tables import Table
-from database.models.thematic import Thematic
+from rule_access.imp.database_reader.models.tables import Table
+from rule_access.imp.database_reader.models.thematic import Thematic
 from typing import List
-from services.tables_services_interface import TableService
-from database.config import SessionManager
+from rule_access.imp.database_reader.services.tables_services_interface import TableService
+from rule_access.imp.database_reader.config import SessionManager
 
 class TableServiceImpl(TableService):
 

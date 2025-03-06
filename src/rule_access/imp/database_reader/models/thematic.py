@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
-from database.config import Base
+from rule_access.imp.database_reader.config import Base
 from sqlalchemy.orm import relationship
 
 class Thematic(Base):

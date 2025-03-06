@@ -11,7 +11,7 @@ PG_DATABASE_URL = os.getenv('PG_DATABASE_URL')
 
 engine = create_engine(PG_DATABASE_URL)
 Base = declarative_base()
-import database.models
+import rule_access.imp.database_reader.models
 Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
