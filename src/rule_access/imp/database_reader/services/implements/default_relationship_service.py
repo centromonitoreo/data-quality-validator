@@ -7,6 +7,6 @@ from typing import List
 class RelationshipServiceImp(RelationshipService):
 
     def get_relationship_by_table(self, table_name)  -> List[Relationship]:
-        return SessionManager().get_session().query(Table).filter(Table.name==table_name).first().left_relationships
-
+        table = SessionManager().get_session().query(Table).filter(Table.name==table_name).first()
+        return SessionManager().get_session().query(Relationship).filter(Relationship.left_table_id == str(table.id)).all()
 

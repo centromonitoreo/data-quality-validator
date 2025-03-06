@@ -18,7 +18,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 class SessionManager:
     _instance = None
     _lock = Lock()
-    _active_sessions = []
+    _active_sessions = None
 
     def __new__(cls):
         with cls._lock:
@@ -28,12 +28,12 @@ class SessionManager:
     
     def get_session(self):
         with self._lock:
-            if len(self._active_sessions) < 2:
+            if self._active_sessions is None:
                 session = SessionLocal()
-                self._active_sessions.append(session)
-                return session
+                self._active_sessions = session
+                return self._active_sessions
             else:
-                raise Exception("⚠️ Límite de 2 sesiones abiertas alcanzado.")
+                return self._active_sessions
 
     def close_session(self, session):
         with self._lock:

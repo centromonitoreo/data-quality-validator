@@ -26,14 +26,14 @@ class ValidationEngine:
         self.error_handler: IErrorHandler  = ErrorHandlerEnum[error_handler].value()
         self.data: Dict = None
         self.kwargs = kwargs
-
         self.reader.validate_inputs()
 
     def run(self):
         self.data = self.rules.get_data(self.reader)
         for table_name in self.data.keys():
+            self.kwargs['table_name'] = table_name
             for validator in self.rules.get_validators(table_name):
-                kwargs_validator = self.rules.get_validate_args(validator)
+                kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
                 valitor_inst = validator(**kwargs_validator)
                 valitor_inst.validate_inputs()
                 self.data = valitor_inst.validate(self.data)

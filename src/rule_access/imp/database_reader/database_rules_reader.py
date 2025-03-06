@@ -31,7 +31,7 @@ class RuleAccessDataBase(IRulesReader):
     
 
     def get_validate_args(self, validator: IValidator, **kwargs):
-        if isinstance(validator, RelationshipDataValidator):
+        if validator == RelationshipDataValidator:
             return self.get_relationship_args(**kwargs)
         raise("Validator Method is not suscribed")
 
@@ -41,9 +41,11 @@ class RuleAccessDataBase(IRulesReader):
         validations = RelationshipServiceImp().get_relationship_by_table(table_name)
         relationship_data =  [
             RelationshipData(
-                left_table= validation.left_table.name,
-                rigth_table = validation.right_table.name,
-                type_relation= validation.relationship
+                left_table= TableServiceImpl().get_table_by_id(validation.left_table_id).name,
+                rigth_table = TableServiceImpl().get_table_by_id(validation.right_table_id).name,
+                type_relation= validation.relationship.value,
+                primary_key_column = validation.primary_key_column,
+                foreign_key_column = validation.foreign_key_column
             )
 
             for validation in validations

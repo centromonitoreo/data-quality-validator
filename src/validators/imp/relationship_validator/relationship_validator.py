@@ -12,9 +12,17 @@ class RelationshipDataValidator(IValidator):
 
 
     def validate(self, data):
+        #TODO hacer toda la logica de validacion
+        for relationshipdata in self.relationship_data:
+            left_table_data = data[relationshipdata.left_table]
+            right_table_data = data[relationshipdata.right_table]
         pass
 
 
     def validate_inputs(self):
-        if self.relationship_data is None or isinstance(self.relationship_data, List[RelationshipData]):
+        if self.relationship_data is None or not isinstance(self.relationship_data, list):
             raise ValueError(f"❌ ")
+        for relation_data in self.relationship_data:
+            if not isinstance(relation_data, RelationshipData):
+                raise
+    
