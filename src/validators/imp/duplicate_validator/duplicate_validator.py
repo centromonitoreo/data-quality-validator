@@ -1,6 +1,6 @@
 
 from validators.interface import IValidator
-from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput
+from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput, DuplicatesIndentifyErrors, DuplicatesIdentifyError
 import geopandas as gpd
 from typing import Dict, Union
 import pandas as pd
@@ -12,7 +12,7 @@ class DuplicatesIdentifyValidator(IValidator):
 
     def validate(
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], **kwargs
-    ) :
+    ) -> DuplicatesIndentifyErrors:
         data.duplicated(subset=self.duplicates_identify_input)
 
     def validate_inputs(self) -> None:
