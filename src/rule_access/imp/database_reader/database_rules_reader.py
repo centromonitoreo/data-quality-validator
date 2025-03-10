@@ -22,8 +22,8 @@ class ValidationsEnum(Enum):
 
 class RuleAccessDataBase(IRulesReader):
 
-    def get_validators(self, table_name:str) -> List[IValidator]:
-        validations =  ValidationServiceImp().get_validations_by_table(table_name)
+    def get_validators(self, table_name:str, error_handler_strategy_name:str) -> List[IValidator]:
+        validations =  ValidationServiceImp().get_validations_by_table(table_name, error_handler_strategy_name)
         return [ValidationsEnum[validation.name].value for validation in validations]
 
     def get_data(self, data_reader: IDataReader) -> Dict[str, Union[pd.DataFrame, gpd.GeoDataFrame]]:

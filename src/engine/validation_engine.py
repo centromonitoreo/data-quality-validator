@@ -24,6 +24,7 @@ class ValidationEngine:
         self.thematic: str = thematic
         self.rules: IRulesReader = RulesReaderEnum[rules_reader].value(thematic)
         self.error_handler: IErrorHandler  = ErrorHandlerEnum[error_handler].value()
+        self.error_handler_name:str = error_handler
         self.data: Dict = None
         self.kwargs = kwargs
         self.reader.validate_inputs()
@@ -32,7 +33,7 @@ class ValidationEngine:
         self.data = self.rules.get_data(self.reader)
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
-            for validator in self.rules.get_validators(table_name):
+            for validator in self.rules.get_validators(table_name, self.error_handler_name):
                 kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
                 valitor_inst = validator(**kwargs_validator)
                 valitor_inst.validate_inputs()
