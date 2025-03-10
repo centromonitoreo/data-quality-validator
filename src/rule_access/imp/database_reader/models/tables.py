@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from rule_access.imp.database_reader.config import Base
+from rule_access.imp.database_reader.config import Base, engine
 
 class Table(Base):
     __tablename__ = 'table'
@@ -12,3 +12,6 @@ class Table(Base):
     thematic_id = Column(UUID(as_uuid=True), ForeignKey('thematic.id'), nullable=False)
     thematic = relationship('Thematic', back_populates='tables')
     validations = relationship('Validation', back_populates='table')
+    duplicate_self_table = relationship('DuplicateSelfTable', back_populates='table')
+
+Base.metadata.create_all(bind=engine)

@@ -36,8 +36,8 @@ class ValidationEngine:
                 kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
                 valitor_inst = validator(**kwargs_validator)
                 valitor_inst.validate_inputs()
-                self.data = valitor_inst.validate(self.data)
+            #     errors = valitor_inst.validate(self.data)
 
 
-            self.data = self.error_handler.handle(self.data, **self.kwargs)
+            # self.data = self.error_handler.handle(self.data, **self.kwargs)
         return self.data

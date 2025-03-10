@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
-from rule_access.imp.database_reader.config import Base
+from rule_access.imp.database_reader.config import Base,engine
 from sqlalchemy.orm import relationship
 
 class Thematic(Base):
@@ -10,3 +10,5 @@ class Thematic(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     nombre_grupo = Column(String, nullable=False)
     tables = relationship('Table', back_populates='thematic')
+
+Base.metadata.create_all(bind=engine)

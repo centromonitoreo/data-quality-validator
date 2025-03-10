@@ -12,8 +12,7 @@ class GdbReader(IDataReader):
             self.path_gdb = None
 
     def read_data(self, table_name:str) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
-        data = gpd.read_file(self.path_gdb, layer = table_name)
-        return data
+        return gpd.read_file(self.path_gdb, layer = table_name)
 
 
     def validate_inputs(self):

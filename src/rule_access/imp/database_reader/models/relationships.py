@@ -1,4 +1,4 @@
-from rule_access.imp.database_reader.config import Base
+from rule_access.imp.database_reader.config import Base, engine
 from sqlalchemy import Column, ForeignKey, Enum, String, ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -20,3 +20,5 @@ class Relationship(Base):
     primary_key_column = Column(ARRAY(String), nullable=False)
     foreign_key_column = Column(ARRAY(String), nullable=False)
     relationship = Column(Enum(RelatioshipEnum, name="relationship_enum"), nullable=False)
+
+Base.metadata.create_all(bind=engine)
