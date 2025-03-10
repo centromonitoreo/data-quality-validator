@@ -13,7 +13,7 @@ class IRulesReader(ABC):
         
 
     @abstractmethod
-    def get_validators(self, table_name:str) -> List[IValidator]:
+    def get_validators(self, table_name:str, error_handler_strategy_name:str) -> List[IValidator]:
         pass
 
     @abstractmethod

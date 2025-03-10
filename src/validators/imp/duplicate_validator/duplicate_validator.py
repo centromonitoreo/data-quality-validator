@@ -13,6 +13,7 @@ class DuplicatesIdentifyValidator(IValidator):
     def validate(
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], **kwargs
     ) -> DuplicatesIndentifyErrors:
+        #TODO implementar la validacion de duplicados
         data.duplicated(subset=self.duplicates_identify_input)
 
     def validate_inputs(self) -> None:
