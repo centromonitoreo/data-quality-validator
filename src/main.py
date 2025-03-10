@@ -7,5 +7,5 @@ def validate_data(thematic:str, rule_reader: str, erro_handlers:str, data_reader
 
 
 if __name__ == '__main__':
-    path_gdb= r'D:\1.PROCESOS_CDM\11.CALIDAD_BDC\02.HERRAMIENTAS\Procesos\Alto San Jorge\Descarga_archivos\LAM1067\2019177955-1-000\BD_ANLA_3115.gdb'
+    path_gdb= r"C:\Users\Jhon\Downloads\Prueba\02_Estrategia_02-Correspondencia\02_Carpeta_salida-E2_v1\LAM0150\20246201130532\ICA_LAM0150_2023_1.gdb"
     validate_data("Monitoreo Agua Superficial", "database_rule_reader",  "delete_strategy", "gdb_reader", path_gdb = path_gdb )
