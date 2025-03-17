@@ -1,6 +1,6 @@
 
 from validators.interface import IValidator
-from validators.imp.relationship_validator.schemas.shemas import RelationshipData
+from validators.imp.relationship_validator.schemas.schemas import RelationshipData
 from typing import List
 
 class RelationshipDataValidator(IValidator):

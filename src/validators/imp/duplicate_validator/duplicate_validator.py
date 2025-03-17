@@ -14,17 +14,17 @@ class DuplicatesIdentifyValidator(IValidator):
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], **kwargs
     ) -> DuplicatesIndentifyErrors:
         #TODO implementar la validacion de duplicados
-        self.validate_inputs()
+        
         columns_to_check = self.duplicates_identify_input.columns
         duplicates = data.duplicated(subset=columns_to_check, keep=False)
         duplicated_data = data.loc[duplicates]
-        errors = [
-            DuplicatesIdentifyError(
-                duplicate_index=duplicated_data.index.tolist(),
-                duplicate_data=duplicated_data[col].astype(str).unique().tolist()
-            )
-            for col in columns_to_check if col in duplicated_data.columns
-        ]
+        # errors = [
+        #     DuplicatesIdentifyError(
+        #         duplicate_index=duplicated_data.index.tolist(),
+        #         duplicate_data=duplicated_data[col].astype(str).unique().tolist()
+        #     )
+        #     for col in columns_to_check if col in duplicated_data.columns
+        # ]
         return DuplicatesIndentifyErrors(list_errors=errors)
         # data.duplicated(subset=self.duplicates_identify_input)
 
