@@ -7,4 +7,4 @@ from typing import List
 class FieldTypeServiceImp(FieldTypeService):
 
     def get_field_verification_by_table(self, table_name) -> List[FieldTypeVerificationTable]:
-        return SessionManager().get_session().query(FieldTypeVerificationTable).join(Table).filter(Table.name==table_name).first()
+        return SessionManager().get_session().query(FieldTypeVerificationTable).join(Table).filter(Table.name==table_name).all()

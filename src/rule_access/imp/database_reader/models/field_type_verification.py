@@ -13,9 +13,8 @@ class FieldTypeVerificationTable(Base):
     field = Column(String, nullable=False)
     data_type = Column(String, nullable=False)
     # homologation = Column(String, nullable=False)
-    domain_id = Column(UUID(as_uuid=True), ForeignKey('domain.id'), nullable=False)
+    domain_name = Column(String, ForeignKey('domain.domain_name'), nullable=False)
     obligatory = Column(String, nullable=False)
-    domains = relationship('DomainTable')
     #TODO colocar un ENUM para data type
 
 Base.metadata.create_all(bind=engine)

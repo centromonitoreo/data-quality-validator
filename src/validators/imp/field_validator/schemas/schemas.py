@@ -1,12 +1,13 @@
 from pydantic import BaseModel
-from typing import List, Union
+from typing import List, Union, Dict
 from enum import Enum
 
 
 class FieldTypeColumn(BaseModel):    
     column : str    
-    type : str    
-    domain_values: List[str]
+    type : str
+    mandatory: bool
+    domain_values: Union[Dict, None]
     
     
 class FieldTypeVerification(BaseModel):    
@@ -14,10 +15,10 @@ class FieldTypeVerification(BaseModel):
     
     
 class DataType(Enum):
-    string = "string"
+    string = "str"
     datetime = "datetime"
-    integer = "integer"
-    double = "double"
+    integer = "int"
+    double = "float64" # float64
     
     
 class ErrorType(Enum):
@@ -32,15 +33,16 @@ class TypeErrorData(BaseModel):
     
     
 class DomainErrorData(BaseModel):
-    domain_name: str 
     value: str
+    index: int
     valid_values: List[str]
+
+class MandatoryErrorData(BaseModel):
+    list_index: List[int]
     
-      
        
 class FieldTypeVerificationError(BaseModel):    
-    column : str    
-    row : int    
+    column : str        
     error_type: ErrorType
-    error_data: Union[TypeErrorData, DomainErrorData, None]
+    error_data: Union[List[TypeErrorData], List[DomainErrorData], MandatoryErrorData]
 

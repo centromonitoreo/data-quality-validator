@@ -8,6 +8,7 @@ from rule_access.imp.database_reader.services.implements.default_validations_ser
 from rule_access.imp.database_reader.services.implements.default_relationship_service import RelationshipServiceImp
 from rule_access.imp.database_reader.services.implements.default_fields_type_verification_service import FieldTypeServiceImp
 from rule_access.imp.database_reader.services.implements.default_duplicated_self_table_service import DuplicateSelfTableServiceImp
+from rule_access.imp.database_reader.services.implements.default_domains_service import DomainTableServiceImp
 from validators.imp.relationship_validator.relationship_validator import RelationshipDataValidator
 from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput
 from validators.imp.field_validator.schemas.schemas import FieldTypeVerification, FieldTypeColumn
@@ -43,6 +44,8 @@ class RuleAccessDataBase(IRulesReader):
             return self.get_relationship_args(**kwargs)
         if validator == DuplicatesIdentifyValidator:
             return self.get_duplicater_self_table(**kwargs)
+        if validator == FieldTypeVerificationValidator:
+            return self.get_field_type_verification(**kwargs)
         raise("Validator Method is not suscribed")
 
 
@@ -54,6 +57,10 @@ class RuleAccessDataBase(IRulesReader):
         )}
     
 
+    def get_values_domain(self, domain_name) -> List[str]:
+        return {domain.domain_id: domain.description for domain in DomainTableServiceImp().get_domains_by_domain_name(domain_name)}
+    
+
     def get_field_type_verification(self, **kwargs) -> FieldTypeVerification:
         table_name = kwargs['table_name']
         field_type_table = FieldTypeServiceImp().get_field_verification_by_table(table_name)
@@ -63,11 +70,10 @@ class RuleAccessDataBase(IRulesReader):
                                     FieldTypeColumn(
                                         column= field_type_column.field,
                                         type= field_type_column.data_type,
-                                        domain_values= None if field_type_column.domains is None else [value.description for value in field_type_column.domains]
+                                        mandatory= field_type_column.obligatory == "Mandatory",
+                                        domain_values= None if field_type_column.domain_name is None else self.get_values_domain(field_type_column.domain_name)
                                     )
-
                                     for field_type_column in field_type_table
-
                                 ])
           
         return {"fields_type_verification": fields_type_verification}
