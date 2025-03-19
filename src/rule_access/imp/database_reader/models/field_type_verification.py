@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.orm import relationship
 
-#Esta es mi tabla de postgres que tiene las verificaiones de campos
+
 class FieldTypeVerificationTable(Base):
     __tablename__ = 'field_type_verification'
     
@@ -16,10 +16,6 @@ class FieldTypeVerificationTable(Base):
     domain_id = Column(UUID(as_uuid=True), ForeignKey('domain.id'), nullable=False)
     obligatory = Column(String, nullable=False)
     domains = relationship('DomainTable')
+    #TODO colocar un ENUM para data type
 
 Base.metadata.create_all(bind=engine)
-
-
-# ¿TENDRE QUE AGREGAR CADA UNO DE LOS DOMINIOS DE LAS TABLAS? -> CUMPLIR DOMINIOS
-# TABLA DE DOINIOS AL POSTGRESQL QUE SE RELACIONE POR LLAVE ROFANEA
-
