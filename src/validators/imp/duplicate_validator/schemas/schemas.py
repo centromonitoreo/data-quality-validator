@@ -1,11 +1,11 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 class DuplicatesIdentifyInput(BaseModel):
     columns : List[str]
 
 class DuplicatesIdentifyError(BaseModel):
     duplicate_index: List[int]
-    duplicate_data: List[str]
+    duplicate_data: Dict
 
-class DuplicatesIndentifyErrors(BaseModel):
+class DuplicatesIdentifyErrors(BaseModel):
     list_errors: List[DuplicatesIdentifyError]
