@@ -1,14 +1,20 @@
 import uuid
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
-from rule_access.imp.database_reader.config import Base,engine
+from rule_access.imp.database_reader.config import Base, engine
 from sqlalchemy.orm import relationship
 
-class Thematic(Base):
-    __tablename__ = 'thematic'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+class Thematic(Base):
+    __tablename__ = "thematic"
+
+    id = Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+    )
     nombre_grupo = Column(String, nullable=False)
-    tables = relationship('Table', back_populates='thematic')
+    tables = relationship("Table", back_populates="thematic")
+    validations = relationship("Validation", back_populates="thematic")
+    relationships = relationship("Relationship", back_populates="thematic")
+
 
 Base.metadata.create_all(bind=engine)

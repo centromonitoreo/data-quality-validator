@@ -5,15 +5,15 @@ from sqlalchemy.orm import relationship
 import uuid
 
 
-class Validation(Base):
-    __tablename__ = "validation"
+class ValidationThematic(Base):
+    __tablename__ = "validation_thematic"
 
     id = Column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
     )
-    table_id = Column(UUID(as_uuid=True), ForeignKey("table.id"), nullable=False)
+    thematic_id = Column(UUID(as_uuid=True), ForeignKey("thematic.id"), nullable=False)
     name = Column(String, nullable=False)
-    table = relationship("Table", back_populates="validations")
+    thematic = relationship("Thematic", back_populates="validations")
 
 
 Base.metadata.create_all(bind=engine)
