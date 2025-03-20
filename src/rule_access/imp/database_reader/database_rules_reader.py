@@ -14,9 +14,11 @@ from rule_access.imp.database_reader.services.implements.default_validations_ser
 from rule_access.imp.database_reader.services.implements.default_relationship_service import (
     RelationshipServiceImp,
 )
+from rule_access.imp.database_reader.services.implements.default_fields_type_verification_service import FieldTypeServiceImp
 from rule_access.imp.database_reader.services.implements.default_duplicated_self_table_service import (
     DuplicateSelfTableServiceImp,
 )
+from rule_access.imp.database_reader.services.implements.default_domains_service import DomainTableServiceImp
 from rule_access.imp.database_reader.services.implements.default_validation_thematic_service import (
     ValidationThematicServiceImp,
 )
@@ -25,6 +27,8 @@ from validators.imp.relationship_validator.relationship_validator import (
     RelationshipDataValidator,
 )
 from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput
+from validators.imp.field_validator.schemas.schemas import FieldTypeVerification, FieldTypeColumn
+from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.duplicate_validator.duplicate_validator import (
     DuplicatesIdentifyValidator,
 )
@@ -37,14 +41,13 @@ from enum import Enum
 
 
 class ValidationsEnum(Enum):
-    relationships = RelationshipDataValidator
-    duplicated_self_table = DuplicatesIdentifyValidator
-
+    relationship = RelationshipDataValidator
+    duplicated_self_table =  DuplicatesIdentifyValidator
 
 class RuleAccessDataBase(IRulesReader):
 
-    def get_validators(self, table_name: str) -> List[IValidator]:
-        validations = ValidationServiceImp().get_validations_by_table(table_name)
+    def get_validators(self, table_name: str, error_handler_strategy_name:str) -> List[IValidator]:
+        validations = ValidationServiceImp().get_validations_by_table(table_name, error_handler_strategy_name)
         return [ValidationsEnum[validation.name].value for validation in validations]
 
     def get_validators_thematic(self):
@@ -67,9 +70,40 @@ class RuleAccessDataBase(IRulesReader):
             return self.get_relationship_args(**kwargs)
         if validator == DuplicatesIdentifyValidator:
             return self.get_duplicater_self_table(**kwargs)
-        raise ("Validator Method is not suscribed")
+        if validator == FieldTypeVerificationValidator:
+            return self.get_field_type_verification(**kwargs)
+        raise("Validator Method is not suscribed")
+
 
     def get_duplicater_self_table(self, **kwargs) -> DuplicatesIdentifyInput:
+        table_name = kwargs['table_name']
+        duplicate_self_table = DuplicateSelfTableServiceImp().get_duplicated_self_table_by_table_name(table_name)
+        return {"duplicates_identify_input": DuplicatesIdentifyInput(
+            columns= duplicate_self_table.columns
+        )}
+    
+
+    def get_values_domain(self, domain_name) -> List[str]:
+        return {domain.domain_id: domain.description for domain in DomainTableServiceImp().get_domains_by_domain_name(domain_name)}
+    
+
+    def get_field_type_verification(self, **kwargs) -> FieldTypeVerification:
+        table_name = kwargs['table_name']
+        field_type_table = FieldTypeServiceImp().get_field_verification_by_table(table_name)
+
+
+        fields_type_verification = FieldTypeVerification(columns=[
+                                    FieldTypeColumn(
+                                        column= field_type_column.field,
+                                        type= field_type_column.data_type,
+                                        mandatory= field_type_column.obligatory == "Mandatory",
+                                        domain_values= None if field_type_column.domain_name is None else self.get_values_domain(field_type_column.domain_name)
+                                    )
+                                    for field_type_column in field_type_table
+                                ])
+          
+        return {"fields_type_verification": fields_type_verification}
+
         table_name = kwargs["table_name"]
         duplicate_self_table = (
             DuplicateSelfTableServiceImp().get_duplicated_self_table_by_table_name(

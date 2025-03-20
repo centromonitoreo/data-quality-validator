@@ -5,5 +5,5 @@ from typing import List
 class ValidationService(ABC):
 
     @abstractmethod
-    def get_validations_by_table(self, table_name: str) -> List[Validation]:
+    def get_validations_by_table(self, table_name: str, error_handler_strategy_name: str) -> List[Validation]:
         pass
