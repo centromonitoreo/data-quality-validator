@@ -10,14 +10,19 @@ class IRulesReader(ABC):
 
     def __init__(self, thematic: str):
         self.thematic = thematic
-        
 
     @abstractmethod
-    def get_validators(self, table_name:str, error_handler_strategy_name:str) -> List[IValidator]:
+    def get_validators_thematic(self) -> List[IValidator]:
         pass
 
     @abstractmethod
-    def get_data(self, data_reader: IDataReader) -> Dict[str, Union[pd.DataFrame, gpd.GeoDataFrame]]:
+    def get_validators(self, table_name: str, error_handler_strategy_name:str) -> List[IValidator]:
+        pass
+
+    @abstractmethod
+    def get_data(
+        self, data_reader: IDataReader
+    ) -> Dict[str, Union[pd.DataFrame, gpd.GeoDataFrame]]:
         pass
 
     @abstractmethod

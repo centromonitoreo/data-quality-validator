@@ -1,12 +1,22 @@
-from rule_access.imp.database_reader.services.relationship_service_interface import RelationshipService
-from rule_access.imp.database_reader.models.relationships import Relationship
-from rule_access.imp.database_reader.models.tables import Table
-from rule_access.imp.database_reader.config import SessionManager
 from typing import List
+from sqlalchemy import cast, String
+
+from rule_access.imp.database_reader.services.relationship_service_interface import (
+    RelationshipService,
+)
+from rule_access.imp.database_reader.models.relationships import Relationship
+from rule_access.imp.database_reader.models.thematic import Thematic
+from rule_access.imp.database_reader.config import SessionManager
+
 
 class RelationshipServiceImp(RelationshipService):
 
-    def get_relationship_by_table(self, table_name)  -> List[Relationship]:
-        table = SessionManager().get_session().query(Table).filter(Table.name==table_name).first()
-        return SessionManager().get_session().query(Relationship).filter(Relationship.left_table_id == str(table.id)).all()
-
+    def get_relationship_by_thematic(self, thematic_name) -> List[Relationship]:
+        return (
+            SessionManager()
+            .get_session()
+            .query(Relationship)
+            .join(Thematic)
+            .filter(Thematic.nombre_grupo == thematic_name)
+            .all()
+        )
