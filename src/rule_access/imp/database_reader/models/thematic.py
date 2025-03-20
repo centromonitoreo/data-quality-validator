@@ -13,7 +13,7 @@ class Thematic(Base):
     )
     nombre_grupo = Column(String, nullable=False)
     tables = relationship("Table", back_populates="thematic")
-    validations = relationship("Validation", back_populates="thematic")
+    validations = relationship("ValidationThematic", back_populates="thematic")
     relationships = relationship("Relationship", back_populates="thematic")
 
 

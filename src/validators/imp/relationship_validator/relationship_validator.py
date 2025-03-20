@@ -3,7 +3,7 @@ import pandas as pd
 import geopandas as gpd
 
 from validators.interface import IValidator
-from validators.imp.relationship_validator.schemas.shemas import (
+from validators.imp.relationship_validator.schemas.schemas import (
     RelationShipInput,
     RelationshipError,
     RelationShipOutput,

@@ -40,6 +40,7 @@ from enum import Enum
 class ValidationsEnum(Enum):
     relationship = RelationshipDataValidator
     duplicated_self_table =  DuplicatesIdentifyValidator
+    fields_type_verification = FieldTypeVerificationValidator
 
 class RuleAccessDataBase(IRulesReader):
 
