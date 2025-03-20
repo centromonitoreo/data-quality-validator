@@ -38,9 +38,9 @@ from enum import Enum
 
 
 class ValidationsEnum(Enum):
-    relationship = RelationshipDataValidator
+    relationships = RelationshipDataValidator
     duplicated_self_table =  DuplicatesIdentifyValidator
-    fields_type_verification = FieldTypeVerificationValidator
+    fields_type_verification = FieldTypeVerificationValidator    
 
 class RuleAccessDataBase(IRulesReader):
 

@@ -53,7 +53,7 @@ class ValidationEngine:
                 valitor_inst.validate_inputs()
                 errors = valitor_inst.validate(self.data[table_name])
 
-            self.data = self.error_handler.handle(self.data, **self.kwargs)
+            # self.data = self.error_handler.handle(self.data, **self.kwargs)
 
         # thematic validations
         for validator_thematic in self.rules.get_validators_thematic():
