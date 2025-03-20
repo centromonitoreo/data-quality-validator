@@ -2,7 +2,7 @@ from rule_access.interface import IRulesReader
 from validators.imp.relationship_validator.relationship_validator import (
     RelationshipDataValidator,
 )
-from validators.imp.relationship_validator.schemas.shemas import RelationShipInput
+from validators.imp.relationship_validator.schemas.schemas import RelationShipInput
 from validators.interface import IValidator
 from data_access.interface import IDataReader
 from rule_access.imp.database_reader.services.implements.default_tables_services import (
@@ -23,15 +23,12 @@ from rule_access.imp.database_reader.services.implements.default_validation_them
     ValidationThematicServiceImp,
 )
 
-from validators.imp.relationship_validator.relationship_validator import (
-    RelationshipDataValidator,
-)
 from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput
 from validators.imp.field_validator.schemas.schemas import FieldTypeVerification, FieldTypeColumn
-from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.duplicate_validator.duplicate_validator import (
     DuplicatesIdentifyValidator,
 )
+from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 
 
 from typing import List, Dict, Union
@@ -103,18 +100,7 @@ class RuleAccessDataBase(IRulesReader):
                                 ])
           
         return {"fields_type_verification": fields_type_verification}
-
-        table_name = kwargs["table_name"]
-        duplicate_self_table = (
-            DuplicateSelfTableServiceImp().get_duplicated_self_table_by_table_name(
-                table_name
-            )
-        )
-        return {
-            "duplicates_identify_input": DuplicatesIdentifyInput(
-                columns=duplicate_self_table.columns
-            )
-        }
+    
 
     def get_relationship_args(self, **kwargs) -> Dict[str, List[RelationShipInput]]:
 
