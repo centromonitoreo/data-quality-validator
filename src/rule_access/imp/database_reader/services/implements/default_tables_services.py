@@ -17,7 +17,7 @@ class TableServiceImpl(TableService):
             .get_session()
             .query(Table)
             .join(Thematic)
-            .filter(Thematic.nombre_grupo == thematic)
+            .filter(Thematic.group_name == thematic)
             .all()
         )
 

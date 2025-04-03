@@ -5,24 +5,25 @@ from typing import Union, List
 
 #ENTRADAS
 class DistributionParamType(Enum):
-    columns = "columns" #Ejemplo aire o suelo
-    rows = "rows" #Ejemplo agua superficial
+    horizontal = "Horizontal" #Ejemplo aire o suelo
+    vertical = "Vertical" #Ejemplo agua superficial
 
 class LimitPara(BaseModel):
     param_name:Union[str, int] #Para el caso de columns se coloca aca el nombre de la columna y para caso de rows el nombre del parametro
     limit_max:float
     limit_min:float
 
-class ColumnsLimit(BaseModel):
+class HorizontalLimit(BaseModel):
+    column_name: str
     limits: List[LimitPara]
 
-class RowsLimits(BaseModel):
+class VerticalLimits(BaseModel):
     column_name: str
     limits: List[LimitPara]
 
 class NaturalLimitsInput(BaseModel):
     distribution_param_type: DistributionParamType
-    limits_data: Union[ColumnsLimit, RowsLimits]
+    limits_data: Union[List[HorizontalLimit], List[VerticalLimits]]
 
 #SALIDAS
 

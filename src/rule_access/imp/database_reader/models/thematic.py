@@ -11,10 +11,12 @@ class Thematic(Base):
     id = Column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
     )
-    nombre_grupo = Column(String, nullable=False)
+    group_name = Column(String, nullable=False)
     tables = relationship("Table", back_populates="thematic")
     validations = relationship("ValidationThematic", back_populates="thematic")
     relationships = relationship("Relationship", back_populates="thematic")
+
+    __table_args__ = {"extend_existing": True}
 
 
 Base.metadata.create_all(bind=engine)

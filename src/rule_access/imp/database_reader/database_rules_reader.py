@@ -22,25 +22,30 @@ from rule_access.imp.database_reader.services.implements.default_domains_service
 from rule_access.imp.database_reader.services.implements.default_validation_thematic_service import (
     ValidationThematicServiceImp,
 )
-
+from rule_access.imp.database_reader.services.implements.default_natural_limits_orientation_service import NaturalLimitsOrientationTableServiceImp
+from rule_access.imp.database_reader.services.implements.default_natural_limits_values_service import NaturalLimitsValuesTableServiceImp
 from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput
 from validators.imp.field_validator.schemas.schemas import FieldTypeVerification, FieldTypeColumn
 from validators.imp.duplicate_validator.duplicate_validator import (
     DuplicatesIdentifyValidator,
 )
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
+from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
+from validators.imp.natural_limits_validator.schemas.schemas import DistributionParamType, LimitPara, HorizontalLimit, VerticalLimits, NaturalLimitsInput
 
 
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Any
 import geopandas as gpd
 import pandas as pd
 from enum import Enum
+import numpy as np
 
 
 class ValidationsEnum(Enum):
     relationship = RelationshipDataValidator
     duplicated_self_table =  DuplicatesIdentifyValidator
     fields_type_verification = FieldTypeVerificationValidator
+    natural_limits = NaturalLimitsValidator
 
 class RuleAccessDataBase(IRulesReader):
 
@@ -70,6 +75,8 @@ class RuleAccessDataBase(IRulesReader):
             return self.get_duplicater_self_table(**kwargs)
         if validator == FieldTypeVerificationValidator:
             return self.get_field_type_verification(**kwargs)
+        if validator == NaturalLimitsValidator:
+            return self.get_natural_limits_values(**kwargs)
         raise("Validator Method is not suscribed")
 
 
@@ -88,7 +95,6 @@ class RuleAccessDataBase(IRulesReader):
     def get_field_type_verification(self, **kwargs) -> FieldTypeVerification:
         table_name = kwargs['table_name']
         field_type_table = FieldTypeServiceImp().get_field_verification_by_table(table_name)
-
 
         fields_type_verification = FieldTypeVerification(columns=[
                                     FieldTypeColumn(
@@ -123,3 +129,52 @@ class RuleAccessDataBase(IRulesReader):
             for validation in validation_self_table
         ]
         return {"relationship_data": relationship_data}
+
+    def get_natural_limits_orientation(self, **kwargs) -> None:
+        table_name = kwargs['table_name']
+        natural_limits_orientation_search = NaturalLimitsOrientationTableServiceImp().get_natural_limits_orientation_table_by_table_name(table_name)
+        id_orientation = natural_limits_orientation_search.id
+        distribution_param_type = natural_limits_orientation_search.orientation
+        if DistributionParamType.horizontal.value == distribution_param_type:
+            param_name_search = list(natural_limits_orientation_search.search_column)
+        elif DistributionParamType.vertical.value == distribution_param_type:
+            param_name_search = list(natural_limits_orientation_search.search_column)
+        return id_orientation, distribution_param_type, param_name_search
+    
+    def get_natural_limits_values(self, **kwargs) -> None:
+        id_orientation, distribution_param_type, param_name_search = self. get_natural_limits_orientation(**kwargs)
+        natural_limits_values_search = NaturalLimitsValuesTableServiceImp().get_natural_limits_values_table_by_table_name(id_orientation)
+        
+        horizontal_limits = []
+        vertical_limits = []
+
+        for parameter in natural_limits_values_search:
+            limit = LimitPara(
+                param_name=parameter.parameter,
+                limit_min=parameter.lower_limit if parameter.lower_limit is not None else np.nan,
+                limit_max=parameter.upper_limit if parameter.upper_limit is not None else np.nan,
+            )
+            
+            if DistributionParamType.horizontal.value == distribution_param_type:
+                for param_column in param_name_search:
+                    if param_column == parameter.parameter:
+                        horizontal_limits.append(
+                            HorizontalLimit(
+                                column_name=param_column,
+                                limits=[limit],
+                            )
+                        )
+            elif DistributionParamType.vertical.value == distribution_param_type:
+                vertical_limits.append(
+                    VerticalLimits(
+                        column_name=param_name_search[0],
+                        limits=[limit],
+                    )
+                )
+            
+            inputs_natural_limits = NaturalLimitsInput(
+                distribution_param_type=distribution_param_type,
+                limits_data=horizontal_limits if DistributionParamType.horizontal.value == distribution_param_type else vertical_limits,
+            )
+
+        return inputs_natural_limits
