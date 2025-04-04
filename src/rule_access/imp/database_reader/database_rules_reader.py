@@ -162,4 +162,4 @@ class RuleAccessDataBase(IRulesReader):
                 limits_data=horizontal_limits if DistributionParamType.horizontal.value == distribution_param_type else vertical_limits,
             )
 
-        return inputs_natural_limits
+        return {"natural_limits": inputs_natural_limits} 

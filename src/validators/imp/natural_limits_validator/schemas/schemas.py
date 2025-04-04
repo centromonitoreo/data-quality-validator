@@ -3,13 +3,12 @@ from enum import Enum
 from typing import Union, List
 
 
-#ENTRADAS
 class DistributionParamType(Enum):
-    horizontal = "Horizontal" #Ejemplo aire o suelo
-    vertical = "Vertical" #Ejemplo agua superficial
+    horizontal = "Horizontal"
+    vertical = "Vertical"
 
 class LimitPara(BaseModel):
-    param_name:Union[str, int] #Para el caso de columns se coloca aca el nombre de la columna y para caso de rows el nombre del parametro
+    param_name:Union[str, int]
     limit_max:float
     limit_min:float
 
@@ -25,37 +24,28 @@ class NaturalLimitsInput(BaseModel):
     distribution_param_type: DistributionParamType
     limits_data: Union[HorizontalLimit, VerticalLimits]
 
-#SALIDAS
-
-#Manejo de errores cuando son columnas
-class ColumnError(BaseModel):
+class VerticalError(BaseModel):
+    param: str
     index: int
     value: float
-class ColumnsErrors(BaseModel):
+    limit_max:float
+    limit_min:float
+
+class VerticalErrors(BaseModel):
     column_name: str
-    limit_max:float
-    limit_min:float
-    errors: List[ColumnError]
+    errors: List[VerticalError]
 
-#Manejo de erroes cuando son por filas
-
-class RowError(BaseModel):
+class HorizontalError(BaseModel):
     index: int
     value: float
-
-
-class ParamRowsErrors(BaseModel):
-    param_name:str
     limit_max:float
     limit_min:float
-    errors: List[RowError]
 
-class RowsErrors(BaseModel):
-    column_name:str
-    errors: List[ParamRowsErrors]
+class HorizontalErrors(BaseModel):
+    column_param: str
+    errors: List[HorizontalError]
 
-#ESTA DE NaturalLimitsErros ES LA QUE DEBE GENERAR LA SALIDA 
 class NaturalLimitsErros(BaseModel):
     distribution_param_type: DistributionParamType
-    errors: Union[ParamRowsErrors, ColumnsErrors]
+    errors: Union[List[HorizontalErrors], List[VerticalErrors]]
     
