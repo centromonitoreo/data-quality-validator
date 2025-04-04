@@ -23,7 +23,6 @@ from rule_access.imp.database_reader.services.implements.default_validation_them
     ValidationThematicServiceImp,
 )
 from rule_access.imp.database_reader.services.implements.default_natural_limits_orientation_service import NaturalLimitsOrientationTableServiceImp
-from rule_access.imp.database_reader.services.implements.default_natural_limits_values_service import NaturalLimitsValuesTableServiceImp
 from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput
 from validators.imp.field_validator.schemas.schemas import FieldTypeVerification, FieldTypeColumn
 from validators.imp.duplicate_validator.duplicate_validator import (
@@ -130,48 +129,34 @@ class RuleAccessDataBase(IRulesReader):
         ]
         return {"relationship_data": relationship_data}
 
-    def get_natural_limits_orientation(self, **kwargs) -> None:
+
+    def get_natural_limits_values(self, **kwargs) -> NaturalLimitsInput:
         table_name = kwargs['table_name']
         natural_limits_orientation_search = NaturalLimitsOrientationTableServiceImp().get_natural_limits_orientation_table_by_table_name(table_name)
-        id_orientation = natural_limits_orientation_search.id
+        natural_limits_values_search = natural_limits_orientation_search.natural_limits_values
         distribution_param_type = natural_limits_orientation_search.orientation
-        if DistributionParamType.horizontal.value == distribution_param_type:
-            param_name_search = list(natural_limits_orientation_search.search_column)
-        elif DistributionParamType.vertical.value == distribution_param_type:
-            param_name_search = list(natural_limits_orientation_search.search_column)
-        return id_orientation, distribution_param_type, param_name_search
-    
-    def get_natural_limits_values(self, **kwargs) -> None:
-        id_orientation, distribution_param_type, param_name_search = self. get_natural_limits_orientation(**kwargs)
-        natural_limits_values_search = NaturalLimitsValuesTableServiceImp().get_natural_limits_values_table_by_table_name(id_orientation)
         
-        horizontal_limits = []
-        vertical_limits = []
+        limit = []
 
         for parameter in natural_limits_values_search:
-            limit = LimitPara(
-                param_name=parameter.parameter,
-                limit_min=parameter.lower_limit if parameter.lower_limit is not None else np.nan,
-                limit_max=parameter.upper_limit if parameter.upper_limit is not None else np.nan,
-            )
-            
-            if DistributionParamType.horizontal.value == distribution_param_type:
-                for param_column in param_name_search:
-                    if param_column == parameter.parameter:
-                        horizontal_limits.append(
-                            HorizontalLimit(
-                                column_name=param_column,
-                                limits=[limit],
-                            )
-                        )
-            elif DistributionParamType.vertical.value == distribution_param_type:
-                vertical_limits.append(
-                    VerticalLimits(
-                        column_name=param_name_search[0],
-                        limits=[limit],
-                    )
+            limit.append(
+                LimitPara(
+                    param_name=parameter.parameter,
+                    limit_min=parameter.lower_limit if parameter.lower_limit is not None else np.nan,
+                    limit_max=parameter.upper_limit if parameter.upper_limit is not None else np.nan,
                 )
-            
+            )
+            if DistributionParamType.horizontal.value == distribution_param_type:
+                horizontal_limits= HorizontalLimit(
+                        limits=limit,
+                    )
+            elif DistributionParamType.vertical.value == distribution_param_type:
+                vertical_limits=VerticalLimits(
+                        column_name_param=natural_limits_orientation_search.search_column[0],
+                        column_name_value=natural_limits_orientation_search.search_column[1],
+                        limits=limit,
+                    )
+
             inputs_natural_limits = NaturalLimitsInput(
                 distribution_param_type=distribution_param_type,
                 limits_data=horizontal_limits if DistributionParamType.horizontal.value == distribution_param_type else vertical_limits,

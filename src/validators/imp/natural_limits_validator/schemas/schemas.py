@@ -14,16 +14,16 @@ class LimitPara(BaseModel):
     limit_min:float
 
 class HorizontalLimit(BaseModel):
-    column_name: str
     limits: List[LimitPara]
 
 class VerticalLimits(BaseModel):
-    column_name: str
+    column_name_param: str
+    column_name_value: str
     limits: List[LimitPara]
 
 class NaturalLimitsInput(BaseModel):
     distribution_param_type: DistributionParamType
-    limits_data: Union[List[HorizontalLimit], List[VerticalLimits]]
+    limits_data: Union[HorizontalLimit, VerticalLimits]
 
 #SALIDAS
 

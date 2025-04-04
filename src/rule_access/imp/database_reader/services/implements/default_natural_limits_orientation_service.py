@@ -6,5 +6,5 @@ from typing import List
 
 class NaturalLimitsOrientationTableServiceImp(NaturalLimitsOrientationService):
 
-    def get_natural_limits_orientation_table_by_table_name(self, table_name: str) -> List[NaturalLimitsOrientationSearchTable]:
+    def get_natural_limits_orientation_table_by_table_name(self, table_name: str) -> NaturalLimitsOrientationSearchTable:
         return SessionManager().get_session().query(NaturalLimitsOrientationSearchTable).join(Table).filter(Table.name==table_name).first()

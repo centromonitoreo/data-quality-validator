@@ -15,8 +15,8 @@ class NaturalLimitsValuesTable(Base):
     id_orientation = Column(UUID(as_uuid=True), ForeignKey('natural_limits_orientation_search.id'), nullable=False)
     parameter = Column(String, nullable=False)
     description = Column(String, nullable=False)
-    upper_limit = Column(Float, nullable=True)
     lower_limit = Column(Float, nullable=True)
+    upper_limit = Column(Float, nullable=True)
     natural_limits_orientation_search = relationship('NaturalLimitsOrientationSearchTable', back_populates='natural_limits_values')
 
     # @property

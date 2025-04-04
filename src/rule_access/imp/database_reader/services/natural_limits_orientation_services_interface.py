@@ -5,5 +5,5 @@ from typing import List
 class NaturalLimitsOrientationService(ABC):
 
     @abstractmethod
-    def get_natural_limits_orientation_table_by_table_name(self, table_name) -> List[NaturalLimitsOrientationSearchTable]:
+    def get_natural_limits_orientation_table_by_table_name(self, table_name) -> NaturalLimitsOrientationSearchTable:
         pass
