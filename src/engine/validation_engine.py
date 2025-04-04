@@ -56,7 +56,6 @@ class ValidationEngine:
                 if validator == NaturalLimitsValidator:
                     errors = valitor_inst.validate(self.data[table_name])
 
-
             # self.data = self.error_handler.handle(self.data, **self.kwargs)
 
         # thematic validations

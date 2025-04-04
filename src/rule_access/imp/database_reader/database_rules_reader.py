@@ -41,9 +41,9 @@ import numpy as np
 
 
 class ValidationsEnum(Enum):
-    relationship = RelationshipDataValidator
+    relationships = RelationshipDataValidator
     duplicated_self_table =  DuplicatesIdentifyValidator
-    fields_type_verification = FieldTypeVerificationValidator
+    fields_type_verification = FieldTypeVerificationValidator    
     natural_limits = NaturalLimitsValidator
 
 class RuleAccessDataBase(IRulesReader):
