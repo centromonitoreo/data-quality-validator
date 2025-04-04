@@ -17,6 +17,6 @@ class RelationshipServiceImp(RelationshipService):
             .get_session()
             .query(Relationship)
             .join(Thematic)
-            .filter(Thematic.nombre_grupo == thematic_name)
+            .filter(Thematic.group_name == thematic_name)
             .all()
         )

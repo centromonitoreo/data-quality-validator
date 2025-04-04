@@ -13,5 +13,6 @@ class Table(Base):
     thematic = relationship('Thematic', back_populates='tables')
     validations = relationship('Validation', back_populates='table')
     duplicate_self_table = relationship('DuplicateSelfTable', back_populates='table')
+    natural_limits_orientation_search = relationship('NaturalLimitsOrientationSearchTable', back_populates='table')
 
 Base.metadata.create_all(bind=engine)
