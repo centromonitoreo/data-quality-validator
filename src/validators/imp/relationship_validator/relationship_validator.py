@@ -54,6 +54,12 @@ class RelationshipDataValidator(IValidator):
                 return {root_table: nodes[root_table]}
             else:
                 return {rt: nodes[rt] for rt in root_tables}
+        
+        def generate_tuples(df: pd.DataFrame, key_columns: List[str]) -> Set[Tuple[str, ...]]:
+            return set(
+                tuple(str(value).strip() for value in row)
+                for row in df[key_columns].values
+            )
 
         def record_missing_keys(
             errors: Dict[str, List[RelationshipError]],
@@ -75,38 +81,35 @@ class RelationshipDataValidator(IValidator):
 
             errors: Dict[str, List[RelationshipError]] = {}
 
+            # get father information
             if father_layer not in list(data.keys()):
                 raise KeyError("Father information not found")
-
-            parent_key_columns: List[str] = node.get("key_name", [])
-            if not parent_key_columns:
-                raise ValueError("Father keys not found")
-
             parent_df = data.get(father_layer)
-            parent_keys: Set[Tuple] = set(
-                tuple(row) for row in parent_df[parent_key_columns].values
-            )
-
+            
             union_children_keys: Set[Tuple] = set()
-
             for child_layer, child_node in node.get("relations", {}).items():
+                
+                # get foreign keys
+                key_columns: List[str] = child_node.get("key_name", [])
+                if not key_columns:
+                    raise ValueError("Keys not found")
+                
+                # get son information
                 if child_layer not in list(data.keys()):
                     raise KeyError("Children information not found")
-
                 child_df = data.get(child_layer)
-                child_key_columns: List[str] = child_node.get("key_name", [])
-                if not child_key_columns:
-                    raise ValueError("Children keys not found")
-
-                child_keys: Set[Tuple] = set(
-                    tuple(row) for row in child_df[child_key_columns].values
-                )
+                
+                # get unique foreign keys
+                parent_keys: Set[Tuple] = generate_tuples(parent_df, key_columns)
+                child_keys: Set[Tuple] = generate_tuples(child_df, key_columns)
                 union_children_keys = union_children_keys.union(child_keys)
-
+                
+                # record missing foreign keys
                 record_missing_keys(
-                    errors, child_layer, child_key_columns, child_keys, parent_keys
+                    errors, child_layer, key_columns, child_keys, parent_keys
                 )
 
+                # eval next son
                 if child_node.get("relations"):
                     child_output = validate_relationships_recursive(
                         child_layer, child_node, data
@@ -118,7 +121,7 @@ class RelationshipDataValidator(IValidator):
                 record_missing_keys(
                     errors,
                     father_layer,
-                    parent_key_columns,
+                    key_columns,
                     parent_keys,
                     union_children_keys,
                 )
