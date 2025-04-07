@@ -11,12 +11,12 @@ class DeleteErrorHandlerAdapter:
         self.errors: DuplicatesIdentifyErrors = errors
         self.table_name = table_name
 
-    def adpter_erros(self) -> DeleteErrorsInput:
+    def adpter_errors(self) -> DeleteErrorsInput:
         error_index = []
         for error in self.errors.list_errors:
             error_index.extend(error.duplicate_index)
         return DeleteErrorsInput(
-            errors=DeleteTableErrors(
+            errors=[DeleteTableErrors(
                 table_name=self.table_name, errors=DeleteRows(index=error_index)
-            )
+            )]
         )
