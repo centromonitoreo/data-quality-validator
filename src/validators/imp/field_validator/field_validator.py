@@ -26,18 +26,6 @@ class FieldTypeVerificationValidator(IValidator):
             error_data=[DomainErrorData(index= index, value=str(value), valid_values=list(domain_values.values())) for index, value in data_errors.items()]
         )
     
-    
-    def validate_mandatory(self, values: pd.Series, column_name) -> FieldTypeVerificationError:
-        data_errors = values[values.isnull() | values.isna()]
-
-        if len(data_errors) == 0:
-            return None
-        
-        return FieldTypeVerificationError(
-            column=column_name,
-            error_type=ErrorType.mandatory_error,
-            error_data=MandatoryErrorData(list_index=data_errors.index.tolist())
-        )
         
     def validate_doubles(self, values: pd.Series) -> FieldTypeVerificationError:
         errors = []
@@ -82,11 +70,6 @@ class FieldTypeVerificationValidator(IValidator):
     ) -> FieldTypeVerificationError:
         errors = []
         for column_data in self.fields_type_verification.columns:
-            
-            if column_data.mandatory:
-                errors_mandatory = self.validate_mandatory(data[column_data.column], column_data.column)
-                if errors_mandatory is not None:
-                    errors.append(errors_mandatory)
 
             if len(column_data.domain_values) > 0:
                 errors_domain = self.validate_domain(data[column_data.column], column_data.domain_values, column_data.column)

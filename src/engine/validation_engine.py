@@ -7,6 +7,7 @@ from data_access.imp.gdb_reader.gdb_reader import GdbReader
 from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIdentifyValidator
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
+from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
 from enum import Enum
 from typing import Dict
 
@@ -53,7 +54,7 @@ class ValidationEngine:
                 valitor_inst = validator(**kwargs_validator)
                 valitor_inst.validate_inputs()
                 # errors = valitor_inst.validate(self.data[table_name])
-                if validator == NaturalLimitsValidator:
+                if validator == MandatoryVerificationValidator:
                     errors = valitor_inst.validate(self.data[table_name])
 
             # self.data = self.error_handler.handle(self.data, **self.kwargs)
