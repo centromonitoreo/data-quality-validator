@@ -1,8 +1,9 @@
 from rule_access.interface import IRulesReader
+from validators.imp.relationship_validator.schemas.schemas import RelationShipInput
 from validators.imp.relationship_validator.relationship_validator import (
     RelationshipDataValidator,
 )
-from validators.imp.relationship_validator.schemas.schemas import RelationShipInput
+
 from validators.interface import IValidator
 from data_access.interface import IDataReader
 from rule_access.imp.database_reader.services.implements.default_tables_services import (
@@ -31,7 +32,11 @@ from validators.imp.duplicate_validator.duplicate_validator import (
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
 from validators.imp.natural_limits_validator.schemas.schemas import DistributionParamType, LimitPara, HorizontalLimit, VerticalLimits, NaturalLimitsInput
-
+from validators.imp.generate_ids.schemas.schemas import GenerateIdInput
+from validators.imp.generate_ids.generate_ids import IdGenerator
+from rule_access.imp.database_reader.services.implements.default_generate_ids_service import (
+    GenerateIdServiceImp,
+)
 
 from typing import List, Dict, Union, Any
 import geopandas as gpd
@@ -45,6 +50,7 @@ class ValidationsEnum(Enum):
     duplicated_self_table =  DuplicatesIdentifyValidator
     fields_type_verification = FieldTypeVerificationValidator    
     natural_limits = NaturalLimitsValidator
+    generate_ids = IdGenerator
 
 class RuleAccessDataBase(IRulesReader):
 
@@ -76,6 +82,8 @@ class RuleAccessDataBase(IRulesReader):
             return self.get_field_type_verification(**kwargs)
         if validator == NaturalLimitsValidator:
             return self.get_natural_limits_values(**kwargs)
+        if validator == IdGenerator:
+            return self.get_id_generator(**kwargs)
         raise("Validator Method is not suscribed")
 
 
@@ -128,6 +136,27 @@ class RuleAccessDataBase(IRulesReader):
             for validation in validation_self_table
         ]
         return {"relationship_data": relationship_data}
+    
+    def get_id_generator(self, **kwargs) -> None:
+        
+        generate_id_instruction = GenerateIdServiceImp().get_generate_id_by_thematic(
+            self.thematic
+        )
+        generate_id_data = [
+            GenerateIdInput(
+                father_table=instruction.father_name,
+                buffer_distance=instruction.buffer_distance,
+                child_tables=instruction.children_names,
+                id_gdb=instruction.id_gdb,
+                id_anla=instruction.id_anla,
+                acronym=instruction.acronym,
+                cols_validate= instruction.cols_validate,
+                is_point=instruction.is_point,
+            )
+            for instruction in generate_id_instruction
+        ]
+        return {"generate_id_data": generate_id_data}
+        
 
 
     def get_natural_limits_values(self, **kwargs) -> NaturalLimitsInput:
