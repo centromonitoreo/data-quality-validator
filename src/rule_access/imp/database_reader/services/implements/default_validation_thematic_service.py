@@ -19,6 +19,6 @@ class ValidationThematicServiceImp(ValidationThematicService):
             .get_session()
             .query(ValidationThematic)
             .join(Thematic)
-            .filter(Thematic.nombre_grupo == thematic_name)
+            .filter(Thematic.group_name == thematic_name)
             .all()
         )

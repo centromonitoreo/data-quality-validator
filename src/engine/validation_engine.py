@@ -6,6 +6,7 @@ from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandle
 from data_access.imp.gdb_reader.gdb_reader import GdbReader
 from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIdentifyValidator
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
+from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
 from enum import Enum
 from typing import Dict
 
@@ -43,7 +44,7 @@ class ValidationEngine:
 
     def run(self):
         self.data = self.rules.get_data(self.reader)
-
+        
         # table validations
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
