@@ -11,7 +11,7 @@ class DeleteData(BaseModel):
 
 class DeleteTableErrors(BaseModel):
     table_name: str
-    erros: Union[List[DeleteData], DeleteRows]
+    errors: Union[List[DeleteData], DeleteRows]
 
 class DeleteErrorsInput(BaseModel):
     errors: List[DeleteTableErrors]
