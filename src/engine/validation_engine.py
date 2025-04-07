@@ -7,6 +7,7 @@ from data_access.imp.gdb_reader.gdb_reader import GdbReader
 from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIdentifyValidator
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
+from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
 from enum import Enum
 from typing import Dict
 
