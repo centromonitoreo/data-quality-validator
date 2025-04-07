@@ -45,6 +45,8 @@ class ValidationEngine:
     def run(self):
         self.data = self.rules.get_data(self.reader)
         
+        # thematic modifications
+        
         # table validations
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
@@ -57,7 +59,7 @@ class ValidationEngine:
                     errors = valitor_inst.validate(self.data[table_name])
 
             # self.data = self.error_handler.handle(self.data, **self.kwargs)
-
+        
         # thematic validations
         for validator_thematic in self.rules.get_validators_thematic():
             print(f"----Evaluating {validator_thematic.__name__}----")
