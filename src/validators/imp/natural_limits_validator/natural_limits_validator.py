@@ -6,10 +6,14 @@ import geopandas as gpd
 from typing import Union
 from rule_access.imp.database_reader.config import engine
 
+from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
+from validators.imp.natural_limits_validator.adapters.delete_errors_handler_adapter import DeleteErrorHandlerAdapter
+
 
 class NaturalLimitsValidator(IValidator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        errors = None
         if not hasattr(self, 'natural_limits'):
             self.natural_limits = None
 
@@ -76,7 +80,6 @@ class NaturalLimitsValidator(IValidator):
 
         return results
 
-
     def validate(
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], **kwargs
     ) -> NaturalLimitsErros:
@@ -93,9 +96,13 @@ class NaturalLimitsValidator(IValidator):
                 errors=horizontal_errors
             )
 
-        return errors
+        self.errors = errors
 
     def validate_inputs(self) -> None:
         print(type(self.natural_limits))
         if self.natural_limits is None or not isinstance(self.natural_limits, NaturalLimitsInput):
             raise ValueError("❌ ")
+    
+    def error_handler_adapter(self, error_hadler_strategy, table_name):
+        if error_hadler_strategy == DeleteErrorHandler:
+            return {"delete_errors_input": DeleteErrorHandlerAdapter(self.errors, table_name).adpter_errors()}

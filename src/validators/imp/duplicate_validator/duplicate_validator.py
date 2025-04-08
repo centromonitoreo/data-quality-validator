@@ -2,6 +2,8 @@
 from validators.interface import IValidator
 from validators.imp.duplicate_validator.schemas.schemas import DuplicatesIdentifyInput, DuplicatesIdentifyErrors, DuplicatesIdentifyError
 import geopandas as gpd
+from validators.imp.duplicate_validator.adapters.delete_errors_handler_adapter import DeleteErrorHandlerAdapter
+from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
 from typing import Union
 import pandas as pd
 
@@ -11,6 +13,7 @@ class DuplicatesIdentifyValidator(IValidator):
         super().__init__(**kwargs)
         if not hasattr(self, 'duplicates_identify_input'):
             self.duplicates_identify_input = None
+            self.errors: DuplicatesIdentifyErrors = None
 
     def validate(
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], **kwargs
@@ -31,10 +34,14 @@ class DuplicatesIdentifyValidator(IValidator):
             for key, indexes in grouped_duplicated_data.items()
         ]
 
-        return DuplicatesIdentifyErrors(list_errors=errors)
+        self.errors = DuplicatesIdentifyErrors(list_errors=errors)
 
     def validate_inputs(self) -> None:
         """Validates that 'duplicates_identify_input' is of the correct type."""
         if self.duplicates_identify_input is None or not isinstance(self.duplicates_identify_input, DuplicatesIdentifyInput):
             raise ValueError(f"❌ Argumentos 'duplicates_identify_input' no son válidos.")
 
+
+    def error_handler_adapter(self, error_hadler_strategy, table_name):
+        if error_hadler_strategy == DeleteErrorHandler:
+            return DeleteErrorHandlerAdapter(self.errors, table_name).adpter_erros()

@@ -31,6 +31,7 @@ from validators.imp.duplicate_validator.duplicate_validator import (
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
 from validators.imp.natural_limits_validator.schemas.schemas import DistributionParamType, LimitPara, HorizontalLimit, VerticalLimits, NaturalLimitsInput
+from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
 
 
 from typing import List, Dict, Union, Any
@@ -41,10 +42,11 @@ import numpy as np
 
 
 class ValidationsEnum(Enum):
-    relationships = RelationshipDataValidator
+    relationship = RelationshipDataValidator
     duplicated_self_table =  DuplicatesIdentifyValidator
     fields_type_verification = FieldTypeVerificationValidator    
     natural_limits = NaturalLimitsValidator
+    mandatory_verification = MandatoryVerificationValidator
 
 class RuleAccessDataBase(IRulesReader):
 
@@ -73,6 +75,8 @@ class RuleAccessDataBase(IRulesReader):
         if validator == DuplicatesIdentifyValidator:
             return self.get_duplicater_self_table(**kwargs)
         if validator == FieldTypeVerificationValidator:
+            return self.get_field_type_verification(**kwargs)
+        if validator == MandatoryVerificationValidator:
             return self.get_field_type_verification(**kwargs)
         if validator == NaturalLimitsValidator:
             return self.get_natural_limits_values(**kwargs)

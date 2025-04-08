@@ -7,10 +7,14 @@ from typing import Union, List
 import pandas as pd
 from rule_access.imp.database_reader.config import engine
 
+from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
+from validators.imp.field_validator.adapters.delete_errors_handler_adapter import DeleteErrorHandlerAdapter
+
 
 class FieldTypeVerificationValidator(IValidator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        errors = None
         if not hasattr(self, 'fields_type_verification'):
             self.fields_type_verification = None
 
@@ -26,18 +30,6 @@ class FieldTypeVerificationValidator(IValidator):
             error_data=[DomainErrorData(index= index, value=str(value), valid_values=list(domain_values.values())) for index, value in data_errors.items()]
         )
     
-    
-    def validate_mandatory(self, values: pd.Series, column_name) -> FieldTypeVerificationError:
-        data_errors = values[values.isnull() | values.isna()]
-
-        if len(data_errors) == 0:
-            return None
-        
-        return FieldTypeVerificationError(
-            column=column_name,
-            error_type=ErrorType.mandatory_error,
-            error_data=MandatoryErrorData(list_index=data_errors.index.tolist())
-        )
         
     def validate_doubles(self, values: pd.Series) -> FieldTypeVerificationError:
         errors = []
@@ -45,7 +37,7 @@ class FieldTypeVerificationValidator(IValidator):
             try:
                 float(value)
             except ValueError:
-                errors.append(TypeErrorData(data_type=DataType.double, value=value))
+                errors.append(TypeErrorData(data_type=DataType.double, index=index, value=value))
         if errors:
             return errors
 
@@ -56,7 +48,7 @@ class FieldTypeVerificationValidator(IValidator):
             try:
                 pd.to_datetime(value)
             except ValueError:
-                errors.append(TypeErrorData(data_type=DataType.datetime, value=value))
+                errors.append(TypeErrorData(data_type=DataType.datetime, index=index, value=value))
         
         if errors:
             return errors
@@ -82,11 +74,6 @@ class FieldTypeVerificationValidator(IValidator):
     ) -> FieldTypeVerificationError:
         errors = []
         for column_data in self.fields_type_verification.columns:
-            
-            if column_data.mandatory:
-                errors_mandatory = self.validate_mandatory(data[column_data.column], column_data.column)
-                if errors_mandatory is not None:
-                    errors.append(errors_mandatory)
 
             if len(column_data.domain_values) > 0:
                 errors_domain = self.validate_domain(data[column_data.column], column_data.domain_values, column_data.column)
@@ -98,9 +85,14 @@ class FieldTypeVerificationValidator(IValidator):
             if errors_type is not None:
                 errors.append(errors_type)
 
-        return errors
+        self.errors = errors
 
 
     def validate_inputs(self) -> None:
         if self.fields_type_verification is None or not isinstance(self.fields_type_verification, FieldTypeVerification):
             raise ValueError(f"❌ ")
+        
+
+    def error_handler_adapter(self, error_hadler_strategy, table_name):
+        if error_hadler_strategy == DeleteErrorHandler:
+            return {"delete_errors_input": DeleteErrorHandlerAdapter(self.errors, table_name).adpter_errors()}
