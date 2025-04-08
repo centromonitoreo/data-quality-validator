@@ -157,12 +157,13 @@ class RelationshipDataValidator(IValidator):
                 missing_keys = list(child_keys - parent_keys)
                 if missing_keys:
                     index_error = find_missing_key_indices(child_df, key_columns, missing_keys)
+                    relation_index = deep_missing_key_indices_son(child_df, index_error, child_node, data)
                     error = RelationshipError(
-                        key_columns=tuple(key_columns), 
+                        key_columns=tuple(key_columns),
                         missing_keys=missing_keys,
-                        index_error = index_error,
-                        relation_index = deep_missing_key_indices_son(child_df, index_error, child_node, data), 
-                )
+                        index_error=index_error,
+                        relation_index=relation_index
+                    )
                     errors.setdefault(child_layer, []).append(error)
 
                 # eval next son
@@ -176,18 +177,24 @@ class RelationshipDataValidator(IValidator):
             if node_to_eval.get("relations"):
                 missing_keys = list(parent_keys - union_children_keys)
                 if missing_keys:
+                    
                     grandfather_layer = find_node_key_with_search_key(father_layer, node)
                     index_error = find_missing_key_indices(parent_df, key_columns, missing_keys)
+                    relation_index = deep_missing_key_indices_father(
+                        parent_df,
+                        index_error,
+                        node,
+                        grandfather_layer,
+                        data
+                    )
+                    
                     error = RelationshipError(
-                        key_columns=tuple(key_columns), 
+                        key_columns=tuple(key_columns),
                         missing_keys=missing_keys,
-                        index_error = index_error,
-                        relation_index = deep_missing_key_indices_father(parent_df, 
-                                                                         index_error, 
-                                                                         node, 
-                                                                         grandfather_layer,
-                                                                         data), 
-                )
+                        index_error=index_error,
+                        relation_index=relation_index
+                    )
+
                     errors.setdefault(child_layer, []).append(error)
 
             return RelationShipOutput(errors=errors)
