@@ -74,6 +74,9 @@ class RuleAccessDataBase(IRulesReader):
         dict_result = {}
         for table in tables:
             dict_result[table.name] = data_reader.read_data(table.name)
+
+        #TODO
+        #AJUSTAR EL DICCIONARIO YA CON IDS Y SIN DUPLICADOS
         return dict_result
 
     def get_validate_args(self, validator: IValidator, **kwargs):
