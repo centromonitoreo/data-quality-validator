@@ -3,7 +3,6 @@ from validators.imp.field_validator.schemas.schemas import FieldTypeVerification
 from error_handlers.imp.delete_strategy.schemas.schemas import (
     DeleteRows,
     DeleteTableErrors,
-    DeleteData,
 )
 from typing import List
 
@@ -14,23 +13,14 @@ class DeleteErrorHandlerAdapter:
         self.table_name = table_name
 
     def adpter_errors(self) -> DeleteErrorsInput:
-        
+        index_delete = []
         for mandatory_error in self.errors:
-            
-            index = [e.index for e in error.errors]
-            if self.errors.distribution_param_type == DistributionParamType.horizontal:
-                table_errors.append(DeleteData(column=error.column_param, index=index))
-            else:
-                index_delete.extend(index)
+            index_delete.extend(mandatory_error.error_data.list_index)
+        errors_delete = DeleteRows(index=list(set(index_delete)))    
 
         return DeleteErrorsInput(
-            errors = DeleteTableErrors(
+            errors = [DeleteTableErrors(
                 table_name=self.table_name,
-                errors=(
-                    table_errors
-                    if self.errors.distribution_param_type
-                    == DistributionParamType.horizontal
-                    else DeleteRows(index=index_delete)
-                ),
-            )
+                errors=errors_delete,
+            )]
         )

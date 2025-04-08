@@ -2,14 +2,14 @@ from error_handlers.interface import IErrorHandler
 from typing import Dict, Union
 import geopandas as gpd
 import pandas as pd
-from error_handlers.imp.delete_strategy.schemas.schemas import DeleteErrorsInput
+from error_handlers.imp.delete_strategy.schemas.schemas import DeleteErrorsInput, DeleteRows, DeleteData
 import numpy as np
 
 class DeleteErrorHandler(IErrorHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if not hasattr(self, 'duplicates_identify_input'):
+        if not hasattr(self, 'delete_errors_input'):
             self.delete_errors_input:DeleteErrorsInput = None
 
     def get_errors_from_thematic(self, table_name):
@@ -21,12 +21,12 @@ class DeleteErrorHandler(IErrorHandler):
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], table_name: str
     ) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
         errors = self.get_errors_from_thematic(table_name)
-        if isinstance(errors, list):
-            for error_column in errors:
-                column = error_column.column
-                data.loc[error_column.index, column] = np.nan
-        else:
-            data.drop(index=errors.index, inplace=True)
+        if isinstance(errors.errors, DeleteRows):
+            data.drop(index=errors.errors.index, inplace=True)
+        elif all(isinstance(e, DeleteData) for e in errors.errors):
+            for error_data in errors.errors:
+                column = error_data.column
+                data.loc[error_data.index, column] = np.nan
         return data
     
     
@@ -39,5 +39,5 @@ class DeleteErrorHandler(IErrorHandler):
     def validate_inputs(self):
         if self.delete_errors_input is None:
             raise("delete_errors_input is mandatory for the DeleteErrorHandler strategy")
-        if not isinstance(self.delete_errors_input, DeleteErrorHandler):
+        if not isinstance(self.delete_errors_input, DeleteErrorsInput):
              raise("delete_errors_input have to be a DeleteErrorsInput")

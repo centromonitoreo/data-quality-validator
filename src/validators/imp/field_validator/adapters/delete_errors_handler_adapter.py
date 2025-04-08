@@ -13,14 +13,17 @@ class DeleteErrorHandlerAdapter:
         self.table_name = table_name
 
     def adpter_errors(self) -> DeleteErrorsInput:
-        errors_schemas = []
-        for error in self.errors.list_errors:
-            errors_schemas.append(
-                DeleteData(
-                    column=error.column, index=[e.index for e in error.error_data]
+        errors_delete = []
+
+        for fields_type_errors in self.errors:
+            for fields_type_errors_index in fields_type_errors.error_data:
+                errors_delete.append(
+                    DeleteData(
+                        column=fields_type_errors.column,
+                        index=[fields_type_errors_index.index]
+                    )
                 )
-            )
 
         return DeleteErrorsInput(
-            errors=DeleteTableErrors(table_name=self.table_name, errors=errors_schemas)
+            errors=[DeleteTableErrors(table_name=self.table_name, errors=errors_delete)]
         )

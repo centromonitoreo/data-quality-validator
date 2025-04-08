@@ -14,7 +14,7 @@ def validate_data(
 if __name__ == "__main__":
     path_gdb = r"F:\ANLA\2025\04_Proceso_validacion\Pruebas\LAM0150\20246201130532\ICA_LAM0150_2023.gdb"
     validate_data(
-        "Monitoreo Agua Superficial", # "Monitoreo Atmosferico" "Monitoreo Agua Superficial"
+        "Monitoreo Atmosferico", # "Monitoreo Atmosferico" "Monitoreo Agua Superficial"
         "database_rule_reader",
         "delete_strategy",
         "gdb_reader",

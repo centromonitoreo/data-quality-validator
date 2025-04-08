@@ -9,6 +9,7 @@ from error_handlers.imp.delete_strategy.schemas.schemas import (
     DeleteData,
 )
 from typing import List
+from collections import defaultdict
 
 
 class DeleteErrorHandlerAdapter:
@@ -17,23 +18,28 @@ class DeleteErrorHandlerAdapter:
         self.table_name = table_name
 
     def adpter_errors(self) -> DeleteErrorsInput:
-        table_errors = []
-        index_delete = []
-        for error in self.errors:
-            index = [e.index for e in error.errors]
-            if self.errors.distribution_param_type == DistributionParamType.horizontal:
-                table_errors.append(DeleteData(column=error.column_param, index=index))
-            else:
-                index_delete.extend(index)
-
+        
+        if self.errors.distribution_param_type == DistributionParamType.vertical:
+            index = []
+            for natural_limits_vertical_errors in self.errors.errors:
+                for natural_limits_vertical_errors_index in natural_limits_vertical_errors.errors:
+                    index.append(natural_limits_vertical_errors_index.index)
+            errors_delete = DeleteData(
+                        column=natural_limits_vertical_errors.column_name,
+                        index=index
+                    )
+        elif self.errors.distribution_param_type == DistributionParamType.horizontal:
+            column_index_map = defaultdict(list)
+            errors_delete = []
+            for natural_limits_horizontal_errors in self.errors.errors:
+                column = natural_limits_horizontal_errors.column_param
+                for error in natural_limits_horizontal_errors.errors:
+                    column_index_map[column].append(error.index)
+            errors_delete = [
+                DeleteData(column=col, index=indices)
+                for col, indices in column_index_map.items()
+            ]
+            
         return DeleteErrorsInput(
-            errors = DeleteTableErrors(
-                table_name=self.table_name,
-                errors=(
-                    table_errors
-                    if self.errors.distribution_param_type
-                    == DistributionParamType.horizontal
-                    else DeleteRows(index=index_delete)
-                ),
-            )
+            errors=[DeleteTableErrors(table_name=self.table_name, errors=errors_delete)]
         )
