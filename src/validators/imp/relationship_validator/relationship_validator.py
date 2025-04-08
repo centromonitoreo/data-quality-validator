@@ -54,20 +54,73 @@ class RelationshipDataValidator(IValidator):
                 return {root_table: nodes[root_table]}
             else:
                 return {rt: nodes[rt] for rt in root_tables}
+        
+        def generate_tuples(df: pd.DataFrame, key_columns: List[str]) -> Set[Tuple[str, ...]]:
+            return set(
+                tuple(str(value).strip() for value in row)
+                for row in df[key_columns].values
+            )
+       
+        def search_in_relations(search_key: str, node: dict) -> dict:
+            
+            # Attempt to directly get the value for search_key in node
+            if search_key in node:
+                return node[search_key]
+                 
+            # If search_key exists in relations, return its associated value.
+            only_value = next(iter(node.values()))
+            relations = only_value.get("relations", {})
+            if search_key in relations:
+                return relations[search_key]
+            return relations
 
-        def record_missing_keys(
-            errors: Dict[str, List[RelationshipError]],
-            table: str,
-            key_columns: List[str],
-            source_keys: Set[Tuple],
-            target_keys: Set[Tuple],
-        ) -> None:
-            missing_keys = list(source_keys - target_keys)
-            if missing_keys:
-                error = RelationshipError(
-                    key_columns=tuple(key_columns), missing_keys=missing_keys
-                )
-                errors.setdefault(table, []).append(error)
+        def find_node_key_with_search_key(search_key: str, node: dict) -> Union[str, None]:
+            for node_key, content in node.items():
+                relations = content.get("relations", {})
+                if search_key in relations:
+                    return node_key
+            return None
+        
+        def find_missing_key_indices(df: pd.DataFrame, 
+                             key_columns: List[str], 
+                             missing_keys: Union[List[Tuple], Set[Tuple]]
+                            ) -> List[int]:
+            keys_series = df[key_columns].apply(lambda row: tuple(row), axis=1)
+            indices = keys_series[keys_series.isin(missing_keys)].index.tolist()
+            return indices
+        
+        def deep_missing_key_indices_son(
+            parent_df: pd.DataFrame,
+            index_error: List[int],
+            node: Dict[str, Any],
+            data: Dict[str, pd.DataFrame]
+        ) -> Dict[str, Any]:
+
+            results: Dict[str, Any] = {}
+            relations = node.get("relations")
+            if relations:
+                for child_layer, child_node in relations.items():
+                    col_name: str = child_node.get('key_name')
+                    child_series = parent_df.loc[index_error, col_name]
+                    keys_series = child_series.apply(lambda row: tuple(row), axis=1)
+                    results[child_layer] = find_missing_key_indices(data[child_layer], col_name, keys_series)
+            return results
+        
+        def deep_missing_key_indices_father(
+            parent_df: pd.DataFrame,
+            index_error: List[int],
+            node: Dict[str, Any],
+            grandfather_layer: str,
+            data: Dict[str, pd.DataFrame]
+        ) -> Dict[str, Any]:
+            results: Dict[str, Any] = {}
+            if grandfather_layer is not None:
+                key_columns = node.get(grandfather_layer, {}).get('key_name')
+                filtered_df = parent_df.loc[index_error, key_columns]
+                keys_series = filtered_df.apply(lambda row: tuple(row), axis=1)
+                results[grandfather_layer] = find_missing_key_indices(data[grandfather_layer], key_columns, keys_series)
+            return results
+            
 
         def validate_relationships_recursive(
             father_layer: str, node: dict, data: dict
@@ -75,53 +128,74 @@ class RelationshipDataValidator(IValidator):
 
             errors: Dict[str, List[RelationshipError]] = {}
 
+            # get father information
             if father_layer not in list(data.keys()):
                 raise KeyError("Father information not found")
-
-            parent_key_columns: List[str] = node.get("key_name", [])
-            if not parent_key_columns:
-                raise ValueError("Father keys not found")
-
             parent_df = data.get(father_layer)
-            parent_keys: Set[Tuple] = set(
-                tuple(row) for row in parent_df[parent_key_columns].values
-            )
-
+            
             union_children_keys: Set[Tuple] = set()
-
-            for child_layer, child_node in node.get("relations", {}).items():
+            
+            node_to_eval = search_in_relations(father_layer, node)
+            for child_layer, child_node in node_to_eval.get("relations", {}).items():
+                
+                # get foreign keys
+                key_columns: List[str] = child_node.get("key_name", [])
+                if not key_columns:
+                    raise ValueError("Keys not found")
+                
+                # get son information
                 if child_layer not in list(data.keys()):
                     raise KeyError("Children information not found")
-
                 child_df = data.get(child_layer)
-                child_key_columns: List[str] = child_node.get("key_name", [])
-                if not child_key_columns:
-                    raise ValueError("Children keys not found")
-
-                child_keys: Set[Tuple] = set(
-                    tuple(row) for row in child_df[child_key_columns].values
-                )
+                
+                # get unique foreign keys
+                parent_keys: Set[Tuple] = generate_tuples(parent_df, key_columns)
+                child_keys: Set[Tuple] = generate_tuples(child_df, key_columns)
                 union_children_keys = union_children_keys.union(child_keys)
+                
+                # eval missing keys 
+                missing_keys = list(child_keys - parent_keys)
+                if missing_keys:
+                    index_error = find_missing_key_indices(child_df, key_columns, missing_keys)
+                    relation_index = deep_missing_key_indices_son(child_df, index_error, child_node, data)
+                    error = RelationshipError(
+                        key_columns=tuple(key_columns),
+                        missing_keys=missing_keys,
+                        index_error=index_error,
+                        relation_index=relation_index
+                    )
+                    errors.setdefault(child_layer, []).append(error)
 
-                record_missing_keys(
-                    errors, child_layer, child_key_columns, child_keys, parent_keys
-                )
-
+                # eval next son
                 if child_node.get("relations"):
                     child_output = validate_relationships_recursive(
-                        child_layer, child_node, data
+                        child_layer, node, data
                     )
                     for table, err_list in child_output.errors.items():
                         errors.setdefault(table, []).extend(err_list)
 
-            if node.get("relations"):
-                record_missing_keys(
-                    errors,
-                    father_layer,
-                    parent_key_columns,
-                    parent_keys,
-                    union_children_keys,
-                )
+            if node_to_eval.get("relations"):
+                missing_keys = list(parent_keys - union_children_keys)
+                if missing_keys:
+                    
+                    grandfather_layer = find_node_key_with_search_key(father_layer, node)
+                    index_error = find_missing_key_indices(parent_df, key_columns, missing_keys)
+                    relation_index = deep_missing_key_indices_father(
+                        parent_df,
+                        index_error,
+                        node,
+                        grandfather_layer,
+                        data
+                    )
+                    
+                    error = RelationshipError(
+                        key_columns=tuple(key_columns),
+                        missing_keys=missing_keys,
+                        index_error=index_error,
+                        relation_index=relation_index
+                    )
+
+                    errors.setdefault(child_layer, []).append(error)
 
             return RelationShipOutput(errors=errors)
 
@@ -131,8 +205,8 @@ class RelationshipDataValidator(IValidator):
 
             all_errors: Dict[str, List[RelationshipError]] = {}
 
-            for root_layer, root_node in relationship_structure.items():
-                output = validate_relationships_recursive(root_layer, root_node, data)
+            for root_layer, _ in relationship_structure.items():
+                output = validate_relationships_recursive(root_layer, relationship_structure, data)
                 for table, errs in output.errors.items():
                     all_errors.setdefault(table, []).extend(errs)
 

@@ -7,6 +7,7 @@ from data_access.imp.gdb_reader.gdb_reader import GdbReader
 from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIdentifyValidator
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
+from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
 from enum import Enum
 from typing import Dict
 
@@ -36,7 +37,7 @@ class ValidationEngine:
         self.reader: IDataReader = ReaderDataEnum[reader].value(**kwargs)
         self.thematic: str = thematic
         self.rules: IRulesReader = RulesReaderEnum[rules_reader].value(thematic)
-        self.error_handler: IErrorHandler  = ErrorHandlerEnum[error_handler].value()
+        self.error_handler: IErrorHandler  = ErrorHandlerEnum[error_handler].value
         self.error_handler_name:str = error_handler
         self.data: Dict = None
         self.kwargs = kwargs
@@ -51,15 +52,16 @@ class ValidationEngine:
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
             for validator in self.rules.get_validators(table_name, self.error_handler_name):
-                kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
-                valitor_inst = validator(**kwargs_validator)
-                valitor_inst.validate_inputs()
-                # errors = valitor_inst.validate(self.data[table_name])
                 if validator == NaturalLimitsValidator:
-                    errors = valitor_inst.validate(self.data[table_name])
+                    kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
+                    validator_inst = validator(**kwargs_validator)
+                    validator_inst.validate_inputs()
+                    validator_inst.validate(self.data[table_name])
+                    errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
+                    error_handler = self.error_handler(**errors)
+                    error_handler.validate_inputs()
+                    self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
 
-            # self.data = self.error_handler.handle(self.data, **self.kwargs)
-        
         # thematic validations
         for validator_thematic in self.rules.get_validators_thematic():
             print(f"----Evaluating {validator_thematic.__name__}----")
@@ -68,6 +70,9 @@ class ValidationEngine:
             )
             validator_inst = validator_thematic(**kwargs_validator)
             validator_inst.validate_inputs()
-            errors = validator_inst.validate(self.data)
+            errors = validator_inst.error_handler_adapter(self.error_handler)
+            error_handler = self.error_handler(**errors)
+            error_handler.validate_inputs()
+            self.data = error_handler.handle_thematic_error(self.data.copy())
 
         return self.data

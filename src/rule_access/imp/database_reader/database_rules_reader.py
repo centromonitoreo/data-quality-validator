@@ -37,6 +37,8 @@ from validators.imp.generate_ids.generate_ids import IdGenerator
 from rule_access.imp.database_reader.services.implements.default_generate_ids_service import (
     GenerateIdServiceImp,
 )
+from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
+
 
 from typing import List, Dict, Union, Any
 import geopandas as gpd
@@ -46,10 +48,11 @@ import numpy as np
 
 
 class ValidationsEnum(Enum):
-    relationships = RelationshipDataValidator
+    relationship = RelationshipDataValidator
     duplicated_self_table =  DuplicatesIdentifyValidator
     fields_type_verification = FieldTypeVerificationValidator    
     natural_limits = NaturalLimitsValidator
+    mandatory_verification = MandatoryVerificationValidator
     generate_ids = IdGenerator
 
 class RuleAccessDataBase(IRulesReader):
@@ -79,6 +82,8 @@ class RuleAccessDataBase(IRulesReader):
         if validator == DuplicatesIdentifyValidator:
             return self.get_duplicater_self_table(**kwargs)
         if validator == FieldTypeVerificationValidator:
+            return self.get_field_type_verification(**kwargs)
+        if validator == MandatoryVerificationValidator:
             return self.get_field_type_verification(**kwargs)
         if validator == NaturalLimitsValidator:
             return self.get_natural_limits_values(**kwargs)
