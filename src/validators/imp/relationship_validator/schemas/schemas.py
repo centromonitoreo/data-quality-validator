@@ -19,6 +19,8 @@ class RelationShipInput(BaseModel):
 class RelationshipError(BaseModel):
     key_columns: Tuple[str, ...]
     missing_keys: List[Any]
+    index_error: List[int]
+    relation_index: Dict[str, List[int]]
 
 
 class RelationShipOutput(BaseModel):

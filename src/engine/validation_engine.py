@@ -46,15 +46,15 @@ class ValidationEngine:
         self.data = self.rules.get_data(self.reader)
         
         # table validations
-        for table_name in self.data.keys():
-            self.kwargs['table_name'] = table_name
-            for validator in self.rules.get_validators(table_name, self.error_handler_name):
-                kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
-                valitor_inst = validator(**kwargs_validator)
-                valitor_inst.validate_inputs()
-                # errors = valitor_inst.validate(self.data[table_name])
-                if validator == NaturalLimitsValidator:
-                    errors = valitor_inst.validate(self.data[table_name])
+        # for table_name in self.data.keys():
+        #     self.kwargs['table_name'] = table_name
+        #     for validator in self.rules.get_validators(table_name, self.error_handler_name):
+        #         kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
+        #         valitor_inst = validator(**kwargs_validator)
+        #         valitor_inst.validate_inputs()
+        #         # errors = valitor_inst.validate(self.data[table_name])
+        #         if validator == NaturalLimitsValidator:
+        #             errors = valitor_inst.validate(self.data[table_name])
 
             # self.data = self.error_handler.handle(self.data, **self.kwargs)
 
