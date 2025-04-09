@@ -1,22 +1,18 @@
 from typing import List, Any, Dict, Union, Set, Optional, Tuple
 
-import pandas as pd
-
-from validators.interface import IValidator
-from validators.imp.generate_ids.schemas.schemas import GenerateIdInput
-from validators.imp.generate_ids.generate_point_id import generate_points_id
-from validators.imp.generate_ids.generate_sample_id import generate_sample_id
+from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schemas import GenerateIdInput
+from rule_access.imp.database_reader.preprocess_data.generate_ids.generate_point_id import generate_points_id
+from rule_access.imp.database_reader.preprocess_data.generate_ids.generate_sample_id import generate_sample_id
 
 
-class IdGenerator(IValidator):
+class IdGenerator():
 
-    def __init__(self, **kwargs):
+    def __init__(self, generate_id_data=None, **kwargs):
         super().__init__(**kwargs)
-        if not hasattr(self, "generate_id_data"):
-            self.generate_id_data = None
+        self.generate_id_data = generate_id_data
         self.errors: Dict[str, List[Any]] = {}
         
-    def validate(self, data: Dict[str, Any]) -> None:
+    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         
         def propagate_father_id_field(data: Dict[str, Any], id_instructions: GenerateIdInput) -> Dict[str, Any]:
             """

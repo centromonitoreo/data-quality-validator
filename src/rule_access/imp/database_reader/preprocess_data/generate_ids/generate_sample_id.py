@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from validators.imp.generate_ids.schemas.schemas import GenerateIdInput
+from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schemas import GenerateIdInput
 
 def filter_index(
     geopandas_database: gpd.GeoDataFrame, cols_merge: list, names: str

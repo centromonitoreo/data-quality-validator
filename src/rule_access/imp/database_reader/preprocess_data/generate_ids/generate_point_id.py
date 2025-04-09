@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 
-from validators.imp.generate_ids.schemas.schemas import GenerateIdInput
+from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schemas import GenerateIdInput
 
 def fill_empty_geometries(
     gdf: gpd.GeoDataFrame,

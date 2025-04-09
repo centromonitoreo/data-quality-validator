@@ -14,7 +14,7 @@ def validate_data(
 if __name__ == "__main__":
     path_gdb = r"D:\ANLA\Etapa 2025\2. Actividades\1. Desarrollo sistema calidad\BD_ANLA_MAGNA_NACIONAL.gdb"
     validate_data(
-        "Monitoreo Atmosferico", # "Monitoreo Atmosferico" "Monitoreo Agua Superficial"
+        "Monitoreo Agua Superficial", # "Monitoreo Atmosferico" "Monitoreo Agua Superficial"
         "database_rule_reader",
         "delete_strategy",
         "gdb_reader",
