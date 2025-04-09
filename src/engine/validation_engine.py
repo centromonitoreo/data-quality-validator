@@ -8,6 +8,7 @@ from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIde
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
 from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
+from validators.imp.relationship_validator.relationship_validator import RelationshipDataValidator
 from enum import Enum
 from typing import Dict
 
@@ -50,7 +51,7 @@ class ValidationEngine:
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
             for validator in self.rules.get_validators(table_name, self.error_handler_name):
-                if validator == NaturalLimitsValidator:
+                if validator == RelationshipDataValidator:
                     kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
                     validator_inst = validator(**kwargs_validator)
                     validator_inst.validate_inputs()
