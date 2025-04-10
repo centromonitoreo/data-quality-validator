@@ -24,10 +24,10 @@ class DeleteErrorHandlerAdapter:
             for natural_limits_vertical_errors in self.errors.errors:
                 for natural_limits_vertical_errors_index in natural_limits_vertical_errors.errors:
                     index.append(natural_limits_vertical_errors_index.index)
-            errors_delete = DeleteData(
+            errors_delete = [DeleteData(
                         column=natural_limits_vertical_errors.column_name,
                         index=index
-                    )
+                    )]
         elif self.errors.distribution_param_type == DistributionParamType.horizontal:
             column_index_map = defaultdict(list)
             errors_delete = []

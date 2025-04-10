@@ -11,9 +11,9 @@ import pandas as pd
 class DuplicatesIdentifyValidator(IValidator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        errors = None
         if not hasattr(self, 'duplicates_identify_input'):
             self.duplicates_identify_input = None
-            self.errors: DuplicatesIdentifyErrors = None
 
     def validate(
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], **kwargs
@@ -44,4 +44,4 @@ class DuplicatesIdentifyValidator(IValidator):
 
     def error_handler_adapter(self, error_hadler_strategy, table_name):
         if error_hadler_strategy == DeleteErrorHandler:
-            return DeleteErrorHandlerAdapter(self.errors, table_name).adpter_erros()
+            return  {"delete_errors_input": DeleteErrorHandlerAdapter(self.errors, table_name).adpter_errors()}
