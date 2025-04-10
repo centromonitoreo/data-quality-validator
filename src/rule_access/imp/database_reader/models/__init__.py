@@ -13,3 +13,4 @@ from rule_access.imp.database_reader.models.domain import DomainTable
 from rule_access.imp.database_reader.models.field_type_verification import FieldTypeVerificationTable
 from rule_access.imp.database_reader.models.natural_limits_orientation_search import NaturalLimitsOrientationSearchTable
 from rule_access.imp.database_reader.models.natural_limits_values import NaturalLimitsValuesTable
+from rule_access.imp.database_reader.models.generate_ids import GenerateId

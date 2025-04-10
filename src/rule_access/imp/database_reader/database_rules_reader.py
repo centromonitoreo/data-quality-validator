@@ -1,8 +1,9 @@
 from rule_access.interface import IRulesReader
+from validators.imp.relationship_validator.schemas.schemas import RelationShipInput
 from validators.imp.relationship_validator.relationship_validator import (
     RelationshipDataValidator,
 )
-from validators.imp.relationship_validator.schemas.schemas import RelationShipInput
+
 from validators.interface import IValidator
 from data_access.interface import IDataReader
 from rule_access.imp.database_reader.services.implements.default_tables_services import (
@@ -31,8 +32,13 @@ from validators.imp.duplicate_validator.duplicate_validator import (
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
 from validators.imp.natural_limits_validator.schemas.schemas import DistributionParamType, LimitPara, HorizontalLimit, VerticalLimits, NaturalLimitsInput
+from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schemas import GenerateIdInput
+from rule_access.imp.database_reader.services.implements.default_generate_ids_service import (
+    GenerateIdServiceImp,
+)
+from rule_access.imp.database_reader.preprocess_data.clean_ids.clean_invalid_ids import process_invalid_ids
+from rule_access.imp.database_reader.preprocess_data.generate_ids.generate_ids import IdGenerator
 from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
-
 
 from typing import List, Dict, Union, Any
 import geopandas as gpd
@@ -40,6 +46,32 @@ import pandas as pd
 from enum import Enum
 import numpy as np
 
+def load_tables_data(data_reader: IDataReader, thematic: str) -> dict:
+        tables = TableServiceImpl().get_tables_by_thematic(thematic)
+        data_dict = {table.name: data_reader.read_data(table.name) for table in tables}
+        return data_dict
+    
+def prepare_generate_id_data(thematic: str) -> List[GenerateIdInput]:
+    instructions = GenerateIdServiceImp().get_generate_id_by_thematic(thematic)
+    generate_id_data = [
+        GenerateIdInput(
+            father_table=instruction.father_name,
+            buffer_distance=instruction.buffer_distance,
+            child_tables=instruction.children_names,
+            id_gdb=instruction.id_gdb,
+            id_anla=instruction.id_anla,
+            acronym=instruction.acronym,
+            cols_validate=instruction.cols_validate,
+            is_point=instruction.is_point,
+        )
+        for instruction in instructions
+    ]
+    return generate_id_data
+
+def generate_ids(data_dict: Dict[str, Any], generate_id_data: List[GenerateIdInput]) -> Dict[str, Any]:
+    id_generator = IdGenerator(generate_id_data=generate_id_data)
+    data_with_ids = id_generator.validate(data_dict)
+    return data_with_ids
 
 class ValidationsEnum(Enum):
     relationship = RelationshipDataValidator
@@ -59,14 +91,16 @@ class RuleAccessDataBase(IRulesReader):
             self.thematic
         )
         return [ValidationsEnum[validation.name].value for validation in validations]
-
+    
     def get_data(
         self, data_reader: IDataReader
     ) -> Dict[str, Union[pd.DataFrame, gpd.GeoDataFrame]]:
-        tables = TableServiceImpl().get_tables_by_thematic(self.thematic)
-        dict_result = {}
-        for table in tables:
-            dict_result[table.name] = data_reader.read_data(table.name)
+        
+        data_dict = load_tables_data(data_reader, self.thematic)
+        id_instructions = prepare_generate_id_data(self.thematic)
+        data_with_ids = generate_ids(data_dict, id_instructions)
+        dict_result = process_invalid_ids(data_with_ids)
+        
         return dict_result
 
     def get_validate_args(self, validator: IValidator, **kwargs):
@@ -132,8 +166,8 @@ class RuleAccessDataBase(IRulesReader):
             for validation in validation_self_table
         ]
         return {"relationship_data": relationship_data}
-
-
+    
+    
     def get_natural_limits_values(self, **kwargs) -> NaturalLimitsInput:
         table_name = kwargs['table_name']
         natural_limits_orientation_search = NaturalLimitsOrientationTableServiceImp().get_natural_limits_orientation_table_by_table_name(table_name)

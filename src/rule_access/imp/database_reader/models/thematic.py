@@ -15,6 +15,7 @@ class Thematic(Base):
     tables = relationship("Table", back_populates="thematic")
     validations = relationship("ValidationThematic", back_populates="thematic")
     relationships = relationship("Relationship", back_populates="thematic")
+    generate_ids = relationship("GenerateId", back_populates="thematic")
 
     __table_args__ = {"extend_existing": True}
 

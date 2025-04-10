@@ -47,6 +47,8 @@ class ValidationEngine:
     def run(self):
         self.data = self.rules.get_data(self.reader)
         
+        # thematic modifications
+        
         # table validations
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
