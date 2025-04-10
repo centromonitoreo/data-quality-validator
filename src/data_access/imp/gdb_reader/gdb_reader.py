@@ -3,6 +3,7 @@ from typing import Union
 import geopandas as gpd
 import pandas as pd
 import os
+from pyogrio.errors import DataLayerError
 
 class GdbReader(IDataReader):
 
@@ -12,7 +13,14 @@ class GdbReader(IDataReader):
             self.path_gdb = None
 
     def read_data(self, table_name:str) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
-        return gpd.read_file(self.path_gdb, layer = table_name)
+        if table_name is None:
+            return
+
+        if isinstance(table_name, str):
+            try:
+                return gpd.read_file(self.path_gdb, layer=table_name)
+            except DataLayerError:
+                pass
 
 
     def validate_inputs(self):

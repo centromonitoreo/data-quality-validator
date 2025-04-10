@@ -9,14 +9,19 @@ from validators.imp.relationship_validator.schemas.schemas import (
     RelationShipOutput,
 )
 
+from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
+from validators.imp.relationship_validator.adapters.delete_errors_handler_adapter import DeleteErrorHandlerAdapter
+
+
 
 class RelationshipDataValidator(IValidator):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.errors: Optional[RelationShipOutput] = None
         if not hasattr(self, "relationship_data"):
             self.relationship_data = None
-        self.errors: Dict[str, List[Any]] = {}
+        # self.errors: Dict[str, List[Any]] = {}
 
     def validate(self, data: Dict[str, Any]) -> RelationShipOutput:
         self.validate_inputs()
@@ -195,7 +200,7 @@ class RelationshipDataValidator(IValidator):
                         relation_index=relation_index
                     )
 
-                    errors.setdefault(child_layer, []).append(error)
+                    errors.setdefault(father_layer, []).append(error)
 
             return RelationShipOutput(errors=errors)
 
@@ -215,7 +220,8 @@ class RelationshipDataValidator(IValidator):
         relationship_structure = build_relationship_structure(self.relationship_data)
         relation_errors = validate_all_relationships(relationship_structure, data)
 
-        return relation_errors
+        # return relation_errors
+        self.errors = relation_errors
 
     def validate_inputs(self):
 
@@ -230,3 +236,7 @@ class RelationshipDataValidator(IValidator):
                 raise TypeError(
                     "Todos los elementos de relationship_data deben ser de tipo RelationshipData."
                 )
+    
+    def error_handler_adapter(self, error_hadler_strategy, table_name):
+        if error_hadler_strategy == DeleteErrorHandler:
+            return {"delete_errors_input": DeleteErrorHandlerAdapter(self.errors, table_name).adpter_errors()}

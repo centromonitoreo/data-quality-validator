@@ -51,15 +51,14 @@ class ValidationEngine:
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
             for validator in self.rules.get_validators(table_name, self.error_handler_name):
-                if validator == RelationshipDataValidator:
-                    kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
-                    validator_inst = validator(**kwargs_validator)
-                    validator_inst.validate_inputs()
-                    validator_inst.validate(self.data[table_name])
-                    errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
-                    error_handler = self.error_handler(**errors)
-                    error_handler.validate_inputs()
-                    self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
+                kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
+                validator_inst = validator(**kwargs_validator)
+                validator_inst.validate_inputs()
+                validator_inst.validate(self.data[table_name])
+                errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
+                error_handler = self.error_handler(**errors)
+                error_handler.validate_inputs()
+                self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
 
         # thematic validations
         for validator_thematic in self.rules.get_validators_thematic():
@@ -69,7 +68,8 @@ class ValidationEngine:
             )
             validator_inst = validator_thematic(**kwargs_validator)
             validator_inst.validate_inputs()
-            errors = validator_inst.error_handler_adapter(self.error_handler)
+            validator_inst.validate(self.data)
+            errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
             error_handler = self.error_handler(**errors)
             error_handler.validate_inputs()
             self.data = error_handler.handle_thematic_error(self.data.copy())

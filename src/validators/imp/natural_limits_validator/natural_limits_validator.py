@@ -23,7 +23,7 @@ class NaturalLimitsValidator(IValidator):
         param_col = vertical_limits.column_name_param
         value_col = vertical_limits.column_name_value
 
-        data[param_col] = data[param_col].astype(float).astype(int).astype(str)
+        data[param_col] = data[param_col].astype(float).astype('Int64').astype(str)
 
         for limit in vertical_limits.limits:
             param = limit.param_name
