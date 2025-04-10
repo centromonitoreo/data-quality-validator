@@ -31,25 +31,4 @@ class DeleteErrorHandlerAdapter:
             )
             all_errors.append(errors_delete)
 
-        # all_errors = []
-
-        # for name_layer, error_list in self.errors.errors.items():
-        #     for error in error_list:
-        #         temp_errors = []
-                
-        #         errors_delete = DeleteTableErrors(
-        #             table_name=name_layer,
-        #             errors=DeleteRows(index=error.index_error),
-        #         )
-        #         temp_errors.append(errors_delete)
-
-        #         for name_layer_relation, index_relation in error.relation_index.items():
-        #             errors_delete_relation = DeleteTableErrors(
-        #                 table_name=name_layer_relation,
-        #                 errors=DeleteRows(index=index_relation),
-        #             )
-        #             temp_errors.append(errors_delete_relation)
-
-        #         all_errors.extend(temp_errors)
-
         return DeleteErrorsInput(errors=all_errors)
