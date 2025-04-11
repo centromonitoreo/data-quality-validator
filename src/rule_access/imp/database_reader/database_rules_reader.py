@@ -47,19 +47,9 @@ from enum import Enum
 import numpy as np
 
 def load_tables_data(data_reader: IDataReader, thematic: str) -> dict:
-    
-    table_service = TableServiceImpl()
-    tables = table_service.get_tables_by_thematic(thematic)
-
-    columns_to_ignore = ["RADI", "EXP_SI", "ID_GDB", "id_informe", "ORI_GDB", "id_anla", "REV_CMRN"]
-
-    data_dict = {}
-    for table in tables:
-        df = data_reader.read_data(table.name)
-        eval_columns = [col for col in df.columns if col not in columns_to_ignore]
-        df_clean = df.drop_duplicates(subset=eval_columns)
-        data_dict[table.name] = df_clean
-    return data_dict
+        tables = TableServiceImpl().get_tables_by_thematic(thematic)
+        data_dict = {table.name: data_reader.read_data(table.name).drop_duplicates() for table in tables}
+        return data_dict
     
 def prepare_generate_id_data(thematic: str) -> List[GenerateIdInput]:
     instructions = GenerateIdServiceImp().get_generate_id_by_thematic(thematic)
@@ -82,6 +72,18 @@ def generate_ids(data_dict: Dict[str, Any], generate_id_data: List[GenerateIdInp
     id_generator = IdGenerator(generate_id_data=generate_id_data)
     data_with_ids = id_generator.validate(data_dict)
     return data_with_ids
+
+def drop_duplicates(data_dict: Dict[str, Any]) -> Dict[str, Any]:
+    
+    columns_to_ignore = ["RADI", "EXP_SI", "ID_GDB", "id_informe", "ORI_GDB", "REV_CMRN"]
+    clean_data_dict = {}
+    for table_name, df in data_dict.items():
+        eval_columns = [col for col in df.columns if col not in columns_to_ignore]
+        df_clean = df.drop_duplicates(subset=eval_columns)
+        clean_data_dict[table_name] = df_clean
+    return clean_data_dict
+    
+    
 
 class ValidationsEnum(Enum):
     relationship = RelationshipDataValidator
@@ -110,8 +112,9 @@ class RuleAccessDataBase(IRulesReader):
         id_instructions = prepare_generate_id_data(self.thematic)
         data_with_ids = generate_ids(data_dict, id_instructions)
         dict_result = process_invalid_ids(data_with_ids)
+        clean_dict_result = drop_duplicates(dict_result)
         
-        return dict_result
+        return clean_dict_result
 
     def get_validate_args(self, validator: IValidator, **kwargs):
         if validator == RelationshipDataValidator:
