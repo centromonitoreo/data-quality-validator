@@ -20,22 +20,18 @@ class DuplicatesIdentifyValidator(IValidator):
     ) -> DuplicatesIdentifyErrors:
         """."""
 
-        columns_to_check = self.duplicates_identify_input.columns
-
-        duplicates = data.duplicated(subset=columns_to_check, keep=False)
-        duplicated_data = data.loc[duplicates]
-        if len(duplicated_data) == 0:
-            self.errors = DuplicatesIdentifyErrors(list_errors=[])
-            return
-        grouped_duplicated_data = duplicated_data.groupby(columns_to_check).apply(lambda x: x.index.tolist())
-
-        errors = [
-            DuplicatesIdentifyError(
-                duplicate_index=indexes,
-                duplicate_data={col: key[i] for i, col in enumerate(columns_to_check)}
-            )
-            for key, indexes in grouped_duplicated_data.items()
-        ]
+        columns_to_check = self.duplicates_identify_input.columns        
+        errors = []
+        for keys, values in data.groupby(columns_to_check):
+            if len(values) > 1:
+                keys_list = [key for key in keys]
+                values_index = [value for value in values.index]
+           
+                errors.append(DuplicatesIdentifyError(
+                        duplicate_index=values_index,
+                        duplicate_data={col: keys_list[i] for i, col in enumerate(columns_to_check)}
+                    )
+                )
 
         self.errors = DuplicatesIdentifyErrors(list_errors=errors)
 

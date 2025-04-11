@@ -14,7 +14,7 @@ class DeleteErrorHandlerAdapter:
     def adpter_errors(self) -> DeleteErrorsInput:
         error_index = []
         for error in self.errors.list_errors:
-            error_index.extend(error.duplicate_index[1:])
+            error_index.extend(error.duplicate_index)
         
         return DeleteErrorsInput(
             errors = [DeleteTableErrors(
