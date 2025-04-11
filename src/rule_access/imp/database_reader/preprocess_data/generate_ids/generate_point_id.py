@@ -204,9 +204,10 @@ def generate_points_id(
     database["REV_CMRN"] = np.nan
 
     # Clean up the id_gdb and RADI columns by stripping extra whitespace
-    database[id_gdb] = database[id_gdb].astype(str).str.strip()
-    database["RADI"] = database["RADI"].astype(str).str.strip()
+    database[id_gdb] = database[id_gdb].apply(lambda x: x.strip() if isinstance(x, str) else x)
+    database["RADI"] = database["RADI"].apply(lambda x: x.strip() if isinstance(x, str) else x)
 
+ 
     # Eval concistency of the information
     database = fill_empty_geometries(database)
     database = inspect_id_consistency(database, id_gdb)

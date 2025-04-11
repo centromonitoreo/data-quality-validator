@@ -48,7 +48,7 @@ import numpy as np
 
 def load_tables_data(data_reader: IDataReader, thematic: str) -> dict:
         tables = TableServiceImpl().get_tables_by_thematic(thematic)
-        data_dict = {table.name: data_reader.read_data(table.name) for table in tables}
+        data_dict = {table.name: data_reader.read_data(table.name).drop_duplicates() for table in tables}
         return data_dict
     
 def prepare_generate_id_data(thematic: str) -> List[GenerateIdInput]:
