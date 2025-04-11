@@ -4,12 +4,13 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 
-from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schemas import GenerateIdInput
+from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schemas import (
+    GenerateIdInput,
+)
+
 
 def fill_empty_geometries(
-    gdf: gpd.GeoDataFrame,
-    default_point: tuple = (0, 0),
-    revision_col: str = "REV_CMRN"
+    gdf: gpd.GeoDataFrame, default_point: tuple = (0, 0), revision_col: str = "REV_CMRN"
 ) -> gpd.GeoDataFrame:
     """
     Fills empty or missing geometries in a GeoDataFrame with a default point (0,0)
@@ -25,14 +26,16 @@ def fill_empty_geometries(
         geopandas.GeoDataFrame: Updated GeoDataFrame with empty geometries filled and marked.
     """
     # Create a mask for rows where the geometry is either missing or empty
-    mask = gdf['geometry'].isnull() | gdf['geometry'].apply(lambda geom: geom.is_empty if geom is not None else True)
-    
+    mask = gdf["geometry"].isnull() | gdf["geometry"].apply(
+        lambda geom: geom.is_empty if geom is not None else True
+    )
+
     # Fill empty geometries with the default point
-    gdf.loc[mask, 'geometry'] = Point(default_point)
-    
+    gdf.loc[mask, "geometry"] = Point(default_point)
+
     # Mark these records as 'Erroneo' in the revision column
     gdf.loc[mask, revision_col] = "Erroneo"
-    
+
     return gdf
 
 
@@ -46,10 +49,13 @@ def inspect_id_consistency(df: pd.DataFrame, id_gdb: str) -> pd.DataFrame:
     df["geometry"] = df.geometry.apply(lambda pt: Point(round(pt.x, 0), round(pt.y, 0)))
     id_columns = [id_gdb, "RADI"]
     subset = df.dropna(subset=id_columns)
-    
+
     for group_vals, group_df in subset.groupby(id_columns):
         if group_df.geometry.nunique() > 1:
-            df.loc[(df[id_gdb] == group_vals[0]) & (df["RADI"] == group_vals[1]), "REV_CMRN"] = "Erroneo"
+            df.loc[
+                (df[id_gdb] == group_vals[0]) & (df["RADI"] == group_vals[1]),
+                "REV_CMRN",
+            ] = "Erroneo"
     return df
 
 
@@ -73,7 +79,9 @@ def calculate_bool_index(
     return mask_nan & mask_rev & mask_distance & mask_index
 
 
-def assign_anla_ids(gdf: gpd.GeoDataFrame, id_instructions: GenerateIdInput) -> gpd.GeoDataFrame:
+def assign_anla_ids(
+    gdf: gpd.GeoDataFrame, id_instructions: GenerateIdInput
+) -> gpd.GeoDataFrame:
     """
     Assigns ANLA IDs to records in the GeoDataFrame grouped by expedient.
     For each expedient group, existing IDs are propagated to nearby records within a specified distance.
@@ -81,7 +89,7 @@ def assign_anla_ids(gdf: gpd.GeoDataFrame, id_instructions: GenerateIdInput) -> 
     to neighboring records within the same group. The coordinate fields (COOR_ESTE and COOR_NORTE) are overwritten
     with the originating record's values.
     """
-    
+
     # Extract ID field, acronym, and distance threshold from the instructions.
     id_field = id_instructions.id_anla
     acronym = id_instructions.acronym
@@ -89,20 +97,20 @@ def assign_anla_ids(gdf: gpd.GeoDataFrame, id_instructions: GenerateIdInput) -> 
 
     # Process records grouped by 'EXPEDIENTE'
     for expedient in gdf["EXPEDIENTE"].unique():
-        
+
         # Define a mask for the current expedient group
         group_mask = gdf["EXPEDIENTE"] == expedient
-        
+
         # # Propagate existing IDs within the current group
         # group_assigned_indices = gdf.loc[group_mask][gdf.loc[group_mask, id_field].notna()].index
         # for idx in group_assigned_indices:
         #     # Create mask for records in the group within the specified distance from the current record
         #     mask = group_mask & (gdf.distance(gdf.geometry[idx]) <= distance)
         #     gdf.loc[mask, id_field] = gdf.loc[idx, id_field]
-        
+
         # Initialize a counter for new IDs within this group.
         counter = 1
-        
+
         # Iterate over records in the current group to assign new IDs where missing.
         for i in gdf.loc[group_mask].index:
             if pd.isna(gdf.at[i, id_field]):
@@ -128,24 +136,29 @@ def filter_index(gdf: gpd.GeoDataFrame, cols: list, values: str) -> pd.Series:
         values = [values]
     mask = pd.Series(True, index=gdf.index)
     for col, val in zip(cols, values):
-        mask &= (gdf[col] == val)
+        mask &= gdf[col] == val
     return mask
 
 
-def classify_grouped_records(gdf: gpd.GeoDataFrame, id_instructions: GenerateIdInput) -> gpd.GeoDataFrame:
+def classify_grouped_records(
+    gdf: gpd.GeoDataFrame, id_instructions: GenerateIdInput
+) -> gpd.GeoDataFrame:
     """
     Classifies grouped records by arbitrarily selecting the first record in each group as definitive.
     All other records in the group are marked as duplicates.
     """
     id_field = id_instructions.id_anla
     cols_validate = id_instructions.cols_validate
-    
+    cols_validate = [
+        col_validate for col_validate in cols_validate if len(col_validate)>0
+    ]
     # Build the list of columns to group by
     group_cols = [id_field] + (
-        cols_validate if isinstance(cols_validate, list)
+        cols_validate
+        if isinstance(cols_validate, list)
         else [cols_validate] if cols_validate else []
     )
-    
+
     # Filter records that have the necessary grouping values
     valid_df = gdf.dropna(subset=group_cols)
     grouped = valid_df.groupby(group_cols)
@@ -162,13 +175,13 @@ def classify_grouped_records(gdf: gpd.GeoDataFrame, id_instructions: GenerateIdI
             gdf.at[definitive_idx, "REV_CMRN"] = "Definitivo"
             for idx in indices[1:]:
                 gdf.at[idx, "REV_CMRN"] = "Duplicado"
-    
+
     return gdf
 
 
 def generate_points_id(
     data: Dict[str, Union[gpd.GeoDataFrame, pd.DataFrame]],
-    id_instructions: GenerateIdInput, 
+    id_instructions: GenerateIdInput,
 ) -> Dict[str, Union[gpd.GeoDataFrame, pd.DataFrame]]:
     """
     Orchestrates the generation of ANLA IDs for points.
@@ -179,34 +192,34 @@ def generate_points_id(
     # Retrieve ID fields from the configuration dictionary
     id_field = id_instructions.id_anla
     id_gdb = id_instructions.id_gdb
-    
+
     # Remove temporary values containing "TEM" by setting them to NaN
     database = data.get(id_instructions.father_table)
     # database[id_field] = database[id_field].apply(
     #     lambda x: np.nan if isinstance(x, str) and "TEM" in x else x
     # )
     database[id_field] = np.nan
-    
+
     # Initialize the revision flag column to NaN
     database["REV_CMRN"] = np.nan
-    
+
     # Clean up the id_gdb and RADI columns by stripping extra whitespace
     database[id_gdb] = database[id_gdb].astype(str).str.strip()
     database["RADI"] = database["RADI"].astype(str).str.strip()
-    
-    # Eval concistency of the information 
-    database = fill_empty_geometries(database) 
-    database = inspect_id_consistency(database, id_gdb) 
+
+    # Eval concistency of the information
+    database = fill_empty_geometries(database)
+    database = inspect_id_consistency(database, id_gdb)
 
     # Assign new ANLA IDs and propagate them to nearby records
     database = assign_anla_ids(database, id_instructions)
-    
+
     # Stablish status by IDs
-    database = classify_grouped_records(database, id_instructions) 
-    
-    # Delete duplicates and erroneous register 
-        
-    # Update data with the IDs generated 
+    database = classify_grouped_records(database, id_instructions)
+
+    # Delete duplicates and erroneous register
+
+    # Update data with the IDs generated
     data[id_instructions.father_table] = database
-    
+
     return data

@@ -19,7 +19,8 @@ class FieldTypeVerificationValidator(IValidator):
             self.fields_type_verification = None
 
     def validate_domain(self, values: pd.Series, domain_values, column_name) -> List[DomainErrorData]:
-        data_errors = values[~values.dropna().astype(int).astype(str).isin(domain_values.keys())]
+        values = values.dropna()
+        data_errors = values[~values.astype(int, errors="ignore").astype(str).isin(domain_values.keys())]
 
         if len(data_errors) == 0:
             return None
@@ -56,7 +57,7 @@ class FieldTypeVerificationValidator(IValidator):
     def validate_type(self, values:pd.Series, data_type: str, column_name) -> FieldTypeVerificationError:
         error = None
         data_type = DataType(data_type)
-        if data_type == DataType.double:
+        if data_type == DataType.float:
             error = self.validate_doubles(values)
         elif data_type == DataType.datetime:
             error = self.validate_datetime(values)
@@ -75,7 +76,7 @@ class FieldTypeVerificationValidator(IValidator):
         errors = []
         for column_data in self.fields_type_verification.columns:
 
-            if len(column_data.domain_values) > 0:
+            if column_data.domain_values:
                 errors_domain = self.validate_domain(data[column_data.column], column_data.domain_values, column_data.column)
                 if errors_domain is not None:
                     errors.append(errors_domain)

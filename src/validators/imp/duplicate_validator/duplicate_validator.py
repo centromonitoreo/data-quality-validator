@@ -24,6 +24,9 @@ class DuplicatesIdentifyValidator(IValidator):
 
         duplicates = data.duplicated(subset=columns_to_check, keep=False)
         duplicated_data = data.loc[duplicates]
+        if len(duplicated_data) == 0:
+            self.errors = DuplicatesIdentifyErrors(list_errors=[])
+            return
         grouped_duplicated_data = duplicated_data.groupby(columns_to_check).apply(lambda x: x.index.tolist())
 
         errors = [

@@ -21,6 +21,8 @@ class DeleteErrorHandler(IErrorHandler):
         self, data: Union[pd.DataFrame, gpd.GeoDataFrame], table_name: str
     ) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
         errors = self.get_errors_from_thematic(table_name)
+        if errors is None:
+            return data
         if isinstance(errors.errors, DeleteRows):
             data.drop(index=errors.errors.index, inplace=True)
         elif all(isinstance(e, DeleteData) for e in errors.errors):

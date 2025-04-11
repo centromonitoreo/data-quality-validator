@@ -28,6 +28,9 @@ class IdGenerator():
             father_id_field = id_instructions.id_anla
             join_field = id_instructions.id_gdb
             cols_validate = id_instructions.cols_validate
+            cols_validate = [
+                col_validate for col_validate in cols_validate if len(col_validate)>0
+            ]
 
             # Define merge keys based on mandatory keys and optional validation columns.
             merge_keys = ['RADI', join_field]

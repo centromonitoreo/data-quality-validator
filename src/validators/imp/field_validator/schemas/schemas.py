@@ -18,7 +18,7 @@ class DataType(Enum):
     string = "str"
     datetime = "datetime"
     integer = "int"
-    double = "float64" # float64
+    float = "float" # float64
     
     
 class ErrorType(Enum):

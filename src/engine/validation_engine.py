@@ -53,6 +53,7 @@ class ValidationEngine:
         for table_name in self.data.keys():
             self.kwargs['table_name'] = table_name
             for validator in self.rules.get_validators(table_name, self.error_handler_name):
+                print(f"----Evaluating {validator.__name__}----")
                 kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
                 validator_inst = validator(**kwargs_validator)
                 validator_inst.validate_inputs()
