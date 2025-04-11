@@ -47,9 +47,19 @@ from enum import Enum
 import numpy as np
 
 def load_tables_data(data_reader: IDataReader, thematic: str) -> dict:
-        tables = TableServiceImpl().get_tables_by_thematic(thematic)
-        data_dict = {table.name: data_reader.read_data(table.name).drop_duplicates() for table in tables}
-        return data_dict
+    
+    table_service = TableServiceImpl()
+    tables = table_service.get_tables_by_thematic(thematic)
+
+    columns_to_ignore = ["RADI", "EXP_SI", "ID_GDB", "id_informe", "ORI_GDB", "id_anla", "REV_CMRN"]
+
+    data_dict = {}
+    for table in tables:
+        df = data_reader.read_data(table.name)
+        eval_columns = [col for col in df.columns if col not in columns_to_ignore]
+        df_clean = df.drop_duplicates(subset=eval_columns)
+        data_dict[table.name] = df_clean
+    return data_dict
     
 def prepare_generate_id_data(thematic: str) -> List[GenerateIdInput]:
     instructions = GenerateIdServiceImp().get_generate_id_by_thematic(thematic)
