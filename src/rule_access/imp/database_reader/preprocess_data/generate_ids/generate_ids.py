@@ -39,15 +39,16 @@ class IdGenerator():
 
             # Build a list of father dataframe columns required for merging.
             father_columns = ['RADI', join_field] + (cols_validate if cols_validate else []) + [father_id_field]
-
+            
             for child_table in id_instructions.child_tables:
                 child_df = data[child_table]
                 child_df.drop(columns=[father_id_field], inplace = True, errors='ignore')
                 # Merge the father's ID field into the child table using the defined merge keys.
+                columns_merge = list(set(father_columns)&(set(child_df.columns.tolist())))
                 child_df = child_df.merge(
                     father_df[father_columns],
                     how='left',
-                    on=merge_keys
+                    on=columns_merge
                 )
                 # Add a review column that flags rows where the father's ID field is missing.
                 child_df['REV_CMRN'] = child_df[father_id_field].isnull().map({True: "Erroneo", False: ""})
