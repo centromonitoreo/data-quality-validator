@@ -4,6 +4,7 @@ from rule_access.interface import IRulesReader
 from rule_access.imp.database_reader.database_rules_reader import RuleAccessDataBase
 from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
 from data_access.imp.gdb_reader.gdb_reader import GdbReader
+from data_access.imp.postgres_reader.postgres_reader import PostgresReader
 from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIdentifyValidator
 from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
@@ -23,6 +24,7 @@ class ErrorHandlerEnum(Enum):
 
 class ReaderDataEnum(Enum):
     gdb_reader = GdbReader
+    postgres_reader = PostgresReader
 
 
 class ValidationEngine:
