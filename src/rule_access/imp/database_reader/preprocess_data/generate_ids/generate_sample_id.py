@@ -55,7 +55,7 @@ def generate_sample_id(
     database[id_instructions.id_anla] = np.nan
     database["rev_cmrn"] = np.nan
     acronym = id_instructions.acronym
-    columns_generate_mu = ["radi", id_instructions.id_gdb]
+    columns_generate_mu = ["radicado", id_instructions.id_gdb]
 
     # Iterate over each unique expedient in the database
     for expedient in set(database["expediente"]):

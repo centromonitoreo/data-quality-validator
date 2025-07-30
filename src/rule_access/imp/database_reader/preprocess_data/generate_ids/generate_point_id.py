@@ -10,7 +10,7 @@ from rule_access.imp.database_reader.preprocess_data.generate_ids.schemas.schema
 
 
 def fill_empty_geometries(
-    gdf: gpd.GeoDataFrame, default_point: tuple = (0, 0), revision_col: str = "REV_CMRN"
+    gdf: gpd.GeoDataFrame, default_point: tuple = (0, 0), revision_col: str = "rev_cmrn"
 ) -> gpd.GeoDataFrame:
     """
     Fills empty or missing geometries in a GeoDataFrame with a default point (0,0)
@@ -20,7 +20,7 @@ def fill_empty_geometries(
         gdf (geopandas.GeoDataFrame): Input GeoDataFrame.
         default_point (tuple, optional): Coordinates to use for filling empty geometries. Defaults to (0, 0).
         revision_col (str, optional): Column name where records with empty geometries will be marked as 'Erroneo'.
-                                      Defaults to "REV_CMRN".
+                                      Defaults to "rev_cmrn".
 
     Returns:
         geopandas.GeoDataFrame: Updated GeoDataFrame with empty geometries filled and marked.
@@ -42,19 +42,19 @@ def fill_empty_geometries(
 def inspect_id_consistency(df: pd.DataFrame, id_gdb: str) -> pd.DataFrame:
     """
     Checks the consistency of IDs by comparing rounded geometries.
-    If a group defined by id_gdb and RADI contains more than one unique geometry,
+    If a group defined by id_gdb and radicado contains more than one unique geometry,
     the records are marked as 'Erroneo'.
     """
     # Round the geometry for comparison
     df["geometry"] = df.geometry.apply(lambda pt: Point(round(pt.x, 0), round(pt.y, 0)))
-    id_columns = [id_gdb, "RADI"]
+    id_columns = [id_gdb, "radicado"]
     subset = df.dropna(subset=id_columns)
 
     for group_vals, group_df in subset.groupby(id_columns):
         if group_df.geometry.nunique() > 1:
             df.loc[
-                (df[id_gdb] == group_vals[0]) & (df["RADI"] == group_vals[1]),
-                "REV_CMRN",
+                (df[id_gdb] == group_vals[0]) & (df["radicado"] == group_vals[1]),
+                "rev_cmrn",
             ] = "Erroneo"
     return df
 
@@ -68,12 +68,12 @@ def calculate_bool_index(
     """
     Calculates a boolean index based on the following conditions:
       - The point relation column is null.
-      - REV_CMRN is null or marked as 'Erroneo'.
+      - rev_cmrn is null or marked as 'Erroneo'.
       - The distance to the reference point is less than or equal to the threshold.
       - The record's index is greater than the reference index.
     """
     mask_nan = pd.isna(gdf[point_relation_column])
-    mask_rev = pd.isna(gdf.REV_CMRN) | (gdf.REV_CMRN == "Erroneo")
+    mask_rev = pd.isna(gdf.rev_cmrn) | (gdf.rev_cmrn == "Erroneo")
     mask_distance = gdf.distance(gdf.geometry[reference_index]) <= distance
     mask_index = gdf.index > reference_index
     return mask_nan & mask_rev & mask_distance & mask_index
@@ -86,7 +86,7 @@ def assign_anla_ids(
     Assigns ANLA IDs to records in the GeoDataFrame grouped by expedient.
     For each expedient group, existing IDs are propagated to nearby records within a specified distance.
     For records without an ID, a new one is generated using the format (acronym-expedient-counter) and propagated
-    to neighboring records within the same group. The coordinate fields (COOR_ESTE and COOR_NORTE) are overwritten
+    to neighboring records within the same group. The coordinate fields (coor_este and coor_norte) are overwritten
     with the originating record's values.
     """
 
@@ -95,11 +95,11 @@ def assign_anla_ids(
     acronym = id_instructions.acronym
     distance = id_instructions.buffer_distance
 
-    # Process records grouped by 'EXPEDIENTE'
-    for expedient in gdf["EXPEDIENTE"].unique():
+    # Process records grouped by 'expediente'
+    for expedient in gdf["expediente"].unique():
 
         # Define a mask for the current expedient group
-        group_mask = gdf["EXPEDIENTE"] == expedient
+        group_mask = gdf["expediente"] == expedient
 
         # # Propagate existing IDs within the current group
         # group_assigned_indices = gdf.loc[group_mask][gdf.loc[group_mask, id_field].notna()].index
@@ -121,8 +121,7 @@ def assign_anla_ids(
                 mask = group_mask & calculate_bool_index(gdf, id_field, distance, i)
                 # Propagate the new ID and update coordinate fields.
                 gdf.loc[mask, id_field] = new_id
-                gdf.loc[mask, "COOR_ESTE"] = gdf.at[i, "COOR_ESTE"]
-                gdf.loc[mask, "COOR_NORTE"] = gdf.at[i, "COOR_NORTE"]
+                gdf.loc[mask, "geometry"] = gdf.at[i, "geometry"]
                 counter += 1
 
     return gdf
@@ -168,13 +167,13 @@ def classify_grouped_records(
         indices = group_df.index.tolist()
         # If the group has a single record, mark it as definitive
         if len(indices) == 1:
-            gdf.at[indices[0], "REV_CMRN"] = "Definitivo"
+            gdf.at[indices[0], "rev_cmrn"] = "Definitivo"
         else:
             # Arbitrarily choose the first record as definitive and mark the rest as duplicates
             definitive_idx = indices[0]
-            gdf.at[definitive_idx, "REV_CMRN"] = "Definitivo"
+            gdf.at[definitive_idx, "rev_cmrn"] = "Definitivo"
             for idx in indices[1:]:
-                gdf.at[idx, "REV_CMRN"] = "Duplicado"
+                gdf.at[idx, "rev_cmrn"] = "Duplicado"
 
     return gdf
 
@@ -201,11 +200,11 @@ def generate_points_id(
     database[id_field] = np.nan
 
     # Initialize the revision flag column to NaN
-    database["REV_CMRN"] = np.nan
+    database["rev_cmrn"] = np.nan
 
-    # Clean up the id_gdb and RADI columns by stripping extra whitespace
+    # Clean up the id_gdb and radicado columns by stripping extra whitespace
     database[id_gdb] = database[id_gdb].apply(lambda x: x.strip() if isinstance(x, str) else x)
-    database["RADI"] = database["RADI"].apply(lambda x: x.strip() if isinstance(x, str) else x)
+    database["radicado"] = database["radicado"].apply(lambda x: x.strip() if isinstance(x, str) else x)
 
  
     # Eval concistency of the information

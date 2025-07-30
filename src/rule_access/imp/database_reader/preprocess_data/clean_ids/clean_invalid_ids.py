@@ -10,15 +10,15 @@ def clean_rev_cmnr(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Processed DataFrame with specified rows removed.
     """
-    if 'REV_CMRN' in df.columns:
-        df = df[~df['REV_CMRN'].isin(["Erroneo", "Duplicado"])]
+    if 'rev_cmrn' in df.columns:
+        df = df[~df['rev_cmrn'].isin(["Erroneo", "Duplicado"])]
     return df
 
 
 def clean_empty_ids(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Removes rows with NaN values in the 'id_anla' and 'ID_MU_ANLA' columns. 
-    If both columns exist, it first removes rows for 'id_anla' then for 'ID_MU_ANLA'.
+    Removes rows with NaN values in the 'id_anla' and 'id_mu_anla' columns. 
+    If both columns exist, it first removes rows for 'id_anla' then for 'id_mu_anla'.
     
     Args:
         df (pd.DataFrame): DataFrame to process.
@@ -28,8 +28,8 @@ def clean_empty_ids(df: pd.DataFrame) -> pd.DataFrame:
     """
     if 'id_anla' in df.columns:
         df = df.dropna(subset=['id_anla'])
-    if 'ID_MU_ANLA' in df.columns:
-        df = df.dropna(subset=['ID_MU_ANLA'])
+    if 'id_mu_anla' in df.columns:
+        df = df.dropna(subset=['id_mu_anla'])
     return df
 
 

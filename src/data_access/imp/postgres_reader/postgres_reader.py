@@ -19,6 +19,8 @@ class PostgresReader(IDataReader):
         engine = create_engine(self.pg_conn_string)
         try:
             df = pd.read_sql_table(table_name.lower(), con=engine)
+            mask = df["expediente"] == "LAM0019" # borrar
+            df = df[mask] # borrar 
             if "geometry" in df.columns:
                 geom_series = df["geometry"]
 
@@ -26,7 +28,7 @@ class PostgresReader(IDataReader):
                 non_null = geom_series.dropna()
                 if not non_null.empty and getattr(non_null.iloc[0], "geom_type", None) is not None:
                     gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
-                    return gdf
+                    return gdf.to_crs(9377)
 
                 # Caso B: intentar WKB (bytes/memoryview o hex)
                 def _to_wkb_bytes(v):
@@ -61,7 +63,7 @@ class PostgresReader(IDataReader):
                     geometry=parsed,
                     crs="EPSG:4326"  # Cambia aquí si tu SRID no es 4326
                 )
-                return gdf
+                return gdf.to_crs(9377)
 
             # Si no hay columna 'geometry', retornar DataFrame normal
             return df

@@ -75,7 +75,7 @@ def generate_ids(data_dict: Dict[str, Any], generate_id_data: List[GenerateIdInp
 
 def drop_duplicates(data_dict: Dict[str, Any]) -> Dict[str, Any]:
     
-    columns_to_ignore = ["RADI", "EXP_SI", "ID_GDB", "id_informe", "ORI_GDB", "REV_CMRN"]
+    columns_to_ignore = ["radicado", "id_informe", "rev_cmrn"] 
     clean_data_dict = {}
     for table_name, df in data_dict.items():
         eval_columns = [col for col in df.columns if col not in columns_to_ignore]
@@ -113,7 +113,8 @@ class RuleAccessDataBase(IRulesReader):
         data_with_ids = generate_ids(data_dict, id_instructions)
         dict_result = process_invalid_ids(data_with_ids)
         clean_dict_result = drop_duplicates(dict_result)
-        
+        clean_dict_result = {key.lower(): value for key, value in clean_dict_result.items()}
+
         return clean_dict_result
 
     def get_validate_args(self, validator: IValidator, **kwargs):
