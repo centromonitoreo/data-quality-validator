@@ -1,9 +1,12 @@
-from engine.validation_engine import ValidationEngine
-from rule_access.imp.database_reader.config import Base
-import geopandas as gpd
 import os
-from rule_access.imp.database_reader.config import SessionManager
+
+from dotenv import load_dotenv
+import geopandas as gpd
+
+from engine.validation_engine import ValidationEngine
+from rule_access.imp.database_reader.config import Base, SessionManager
 from rule_access.imp.database_reader.models.thematic import Thematic
+
 
 def validate_data(
     thematic: str, rule_reader: str, erro_handlers: str, data_reader: str, **kwargs
@@ -24,18 +27,18 @@ def save_data(dict_data, out_folder):
 
 
 if __name__ == "__main__":
-    pg_conn_string = "postgresql://user:password@localhost/dbname"
+    
+    load_dotenv()
+    pg_conn_string = os.getenv("PG_DATABASE_URL")
     out_folder = r"D:\1.PROCESOS_CDM\11.CALIDAD_BDC\02.HERRAMIENTAS\Procesos\cienaga\salida"
-    #thematics = SessionManager().get_session().query(Thematic).all()
-    thematics = ['Flora', 'Fauna']
+    thematics = SessionManager().get_session().query(Thematic).all()
     for thematic in thematics:
-        print(thematic)
+        print(thematic.group_name)
         data = validate_data(
-            thematic,  # "Monitoreo Atmosferico" "Monitoreo Agua Superficial"
+            thematic.group_name,
             "database_rule_reader",
             "delete_strategy",
             "postgres_reader",
             pg_conn_string=pg_conn_string,
         )
         save_data(data, out_folder)
-    # print('holi')

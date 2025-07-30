@@ -33,12 +33,12 @@ class IdGenerator():
             ]
 
             # Define merge keys based on mandatory keys and optional validation columns.
-            merge_keys = ['RADI', join_field]
+            merge_keys = ['radicado', join_field]
             if cols_validate:
                 merge_keys.extend(cols_validate)
 
             # Build a list of father dataframe columns required for merging.
-            father_columns = ['RADI', join_field] + (cols_validate if cols_validate else []) + [father_id_field]
+            father_columns = ['radicado', join_field] + (cols_validate if cols_validate else []) + [father_id_field]
             
             for child_table in id_instructions.child_tables:
                 child_df = data[child_table]
@@ -51,7 +51,7 @@ class IdGenerator():
                     on=columns_merge
                 )
                 # Add a review column that flags rows where the father's ID field is missing.
-                child_df['REV_CMRN'] = child_df[father_id_field].isnull().map({True: "Erroneo", False: ""})
+                child_df['rev_cmrn'] = child_df[father_id_field].isnull().map({True: "Erroneo", False: ""})
                 data[child_table] = child_df
 
             return data

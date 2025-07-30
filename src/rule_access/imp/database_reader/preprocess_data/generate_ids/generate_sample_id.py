@@ -53,14 +53,14 @@ def generate_sample_id(
     
     database = data.get(id_instructions.father_table)
     database[id_instructions.id_anla] = np.nan
-    database["REV_CMRN"] = np.nan
+    database["rev_cmrn"] = np.nan
     acronym = id_instructions.acronym
-    columns_generate_mu = ["RADI", id_instructions.id_gdb]
+    columns_generate_mu = ["radi", id_instructions.id_gdb]
 
     # Iterate over each unique expedient in the database
-    for expedient in set(database["EXPEDIENTE"]):
+    for expedient in set(database["expediente"]):
         # Create a mask to select only the rows for the current expedient
-        mask_expedient = database["EXPEDIENTE"] == expedient
+        mask_expedient = database["expediente"] == expedient
         # Filter the subset corresponding to the current expedient and drop rows without the necessary information
         subset = database[mask_expedient]
         df_group = subset.dropna(subset=columns_generate_mu)
@@ -71,7 +71,7 @@ def generate_sample_id(
         for names, values in sample_group:
             # Get the indices of rows that meet the group conditions for the current expedient and have no revision status yet
             indices = filter_index(database, columns_generate_mu, names) & mask_expedient & pd.isna(
-                database["REV_CMRN"]
+                database["rev_cmrn"]
             )
             indices = database[indices].index.tolist()
             if len(indices) > 0:
@@ -80,13 +80,13 @@ def generate_sample_id(
                 database.loc[indices, id_instructions.id_anla] = id_anla_muestra
 
                 # Assign the revision status based on the number of records and the analysis dates
-                if (len(values) > 1) and (len(values["FEC_ANALIS"].unique()) == 1):
-                    database.loc[indices[0], "REV_CMRN"] = "Definitivo"
-                    database.loc[indices[1:], "REV_CMRN"] = "Duplicado"
-                elif (len(values) > 1) and (len(values["FEC_ANALIS"].unique()) > 1):
-                    database.loc[indices, "REV_CMRN"] = "Erroneo"
+                if (len(values) > 1) and (len(values["fec_analis"].unique()) == 1):
+                    database.loc[indices[0], "rev_cmrn"] = "Definitivo"
+                    database.loc[indices[1:], "rev_cmrn"] = "Duplicado"
+                elif (len(values) > 1) and (len(values["fec_analis"].unique()) > 1):
+                    database.loc[indices, "rev_cmrn"] = "Erroneo"
                 else:
-                    database.loc[indices, "REV_CMRN"] = "Definitivo"
+                    database.loc[indices, "rev_cmrn"] = "Definitivo"
                 cont += 1
 
     # Update data with the IDs generated 
