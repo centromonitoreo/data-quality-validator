@@ -23,7 +23,7 @@ class NaturalLimitsValidator(IValidator):
         param_col = vertical_limits.column_name_param
         value_col = vertical_limits.column_name_value
 
-        data[param_col] = data[param_col].astype(float).astype('Int64').astype(str)
+        # data[param_col] = data[param_col].astype(float).astype('Int64').astype(str)
 
         for limit in vertical_limits.limits:
             param = limit.param_name
@@ -33,7 +33,10 @@ class NaturalLimitsValidator(IValidator):
             param_data = data[data[param_col] == param]
             
             for index, row in param_data.iterrows():
-                value = row[value_col]
+                try:
+                    value = float(row[value_col])
+                except (ValueError, TypeError):
+                    value = pd.NA
                 if (limit_max is not None and value > limit_max) or (limit_min is not None and value < limit_min):
                     errors.append(
                         VerticalError(param=param,

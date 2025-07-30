@@ -20,9 +20,9 @@ class FieldTypeVerificationValidator(IValidator):
 
     def validate_domain(self, values: pd.Series, domain_values, column_name) -> List[DomainErrorData]:
         
-        values = pd.to_numeric(values, errors='coerce')
-        values = values.dropna()
-        data_errors = values[~values.astype(int).astype(str).isin(domain_values.keys())]
+        #values = pd.to_numeric(values, errors='coerce')
+        # values = values.dropna()
+        data_errors = values[~values.astype(str).isin(domain_values.values())]
 
         if len(data_errors) == 0:
             return None
@@ -40,7 +40,7 @@ class FieldTypeVerificationValidator(IValidator):
             try:
                 float(value)
             except ValueError:
-                errors.append(TypeErrorData(data_type=DataType.double, index=index, value=value))
+                errors.append(TypeErrorData(data_type=DataType.float, index=index, value=value))
         if errors:
             return errors
 

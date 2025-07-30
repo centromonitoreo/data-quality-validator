@@ -8,9 +8,10 @@ from sqlalchemy import Column, String, ARRAY, Enum as SAEnum
 
 
 class RelationshipEnum(EnumClass):
-    many_to_one = "ManyToOne"
-    one_to_many = "OneToMany"
-    many_to_many = "ManyToMany"
+    ONE_TO_ONE = "ONE_TO_ONE"
+    ONE_TO_MANY = "ONE_TO_MANY"
+    MANY_TO_ONE = "MANY_TO_ONE"
+    MANY_TO_MANY = "MANY_TO_MANY"
 
 
 class Relationship(Base):

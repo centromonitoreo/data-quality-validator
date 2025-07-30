@@ -64,7 +64,7 @@ class ValidationEngine:
                 error_handler = self.error_handler(**errors)
                 error_handler.validate_inputs()
                 self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
-                print({table:len(data) for table, data in self.data.items()})
+                # print({table:len(data) for table, data in self.data.items()})
 
         # thematic validations
         print("---------------Tematico------------------------------")

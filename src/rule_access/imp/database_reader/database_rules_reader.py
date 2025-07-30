@@ -113,7 +113,6 @@ class RuleAccessDataBase(IRulesReader):
         data_with_ids = generate_ids(data_dict, id_instructions)
         dict_result = process_invalid_ids(data_with_ids)
         clean_dict_result = drop_duplicates(dict_result)
-        clean_dict_result = {key.lower(): value for key, value in clean_dict_result.items()}
 
         return clean_dict_result
 
@@ -193,7 +192,7 @@ class RuleAccessDataBase(IRulesReader):
         for parameter in natural_limits_values_search:
             limit.append(
                 LimitPara(
-                    param_name=parameter.parameter,
+                    param_name=parameter.description,
                     limit_min=parameter.lower_limit if parameter.lower_limit is not None else np.nan,
                     limit_max=parameter.upper_limit if parameter.upper_limit is not None else np.nan,
                 )

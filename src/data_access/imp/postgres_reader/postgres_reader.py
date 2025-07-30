@@ -2,7 +2,7 @@ from data_access.interface import IDataReader
 from typing import Union
 import pandas as pd
 import geopandas as gpd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import os
 
 class PostgresReader(IDataReader):
@@ -18,9 +18,9 @@ class PostgresReader(IDataReader):
 
         engine = create_engine(self.pg_conn_string)
         try:
-            df = pd.read_sql_table(table_name.lower(), con=engine)
-            mask = df["expediente"] == "LAM0019" # borrar
-            df = df[mask] # borrar 
+            valor = "LAM0019"
+            sql = text(f"SELECT * FROM {table_name.lower()} WHERE expediente = :exp")
+            df = pd.read_sql_query(sql, con=engine, params={"exp": valor})
             if "geometry" in df.columns:
                 geom_series = df["geometry"]
 
