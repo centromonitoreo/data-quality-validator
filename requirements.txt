@@ -8,3 +8,4 @@ pygbif
 requests
 fuzzywuzzy
 multiprocess
+python-Levenshtein

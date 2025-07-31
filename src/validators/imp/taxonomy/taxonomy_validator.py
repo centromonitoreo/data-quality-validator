@@ -376,7 +376,7 @@ def taxonomy_revision(data: pd.DataFrame) -> pd.DataFrame:
     biotico["correl"] = biotico["correl"].apply(lambda x: x if isinstance(x, float) else 0)
     for column in biotico.columns:
         df_genero_limpio[column] = biotico[column]
-    return biotico
+    return df_genero_limpio
 
 
 class TaxonomyValidator(IValidator):
