@@ -5,11 +5,6 @@ from rule_access.imp.database_reader.database_rules_reader import RuleAccessData
 from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
 from data_access.imp.gdb_reader.gdb_reader import GdbReader
 from data_access.imp.postgres_reader.postgres_reader import PostgresReader
-from validators.imp.duplicate_validator.duplicate_validator import DuplicatesIdentifyValidator
-from validators.imp.field_validator.field_validator import FieldTypeVerificationValidator
-from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
-from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
-from validators.imp.relationship_validator.relationship_validator import RelationshipDataValidator
 from validators.imp.taxonomy.taxonomy_validator import TaxonomyValidator
 from enum import Enum
 from typing import Dict
@@ -60,14 +55,15 @@ class ValidationEngine:
                 kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
                 validator_inst = validator(**kwargs_validator)
                 validator_inst.validate_inputs()
-                validator_inst.validate(self.data[table_name].copy())
+                table_data = self.data[table_name].copy()
+                validator_inst.validate(table_data)
                 if validator == TaxonomyValidator:
                     self.data[table_name] = validator_inst.taxonomy_data
                 else:
                     errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
                     error_handler = self.error_handler(**errors)
                     error_handler.validate_inputs()
-                    self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
+                    self.data[table_name] = error_handler.handle_table_error(table_data,self.kwargs['table_name'])
 
         # thematic validations
         print("---------------Tematico------------------------------")

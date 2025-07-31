@@ -1,9 +1,14 @@
-from data_access.interface import IDataReader
+import os
 from typing import Union
+
 import pandas as pd
 import geopandas as gpd
-from sqlalchemy import create_engine, text
-import os
+from sqlalchemy import create_engine, text, bindparam
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import String
+
+from data_access.interface import IDataReader
+
 
 class PostgresReader(IDataReader):
     def __init__(self, **kwargs):
@@ -18,10 +23,28 @@ class PostgresReader(IDataReader):
 
         engine = create_engine(self.pg_conn_string)
         try:
-            valor = "LAM0019"
-            sql = text(f"SELECT * FROM {table_name.lower()} WHERE expediente = :exp")
-            df = pd.read_sql_query(sql, con=engine, params={"exp": valor})
+            expedientes = ['LAM0019','LAM0165','LAM0226','LAM0471','LAM0472','LAM1235',
+                       'LAM1437','LAM1700','LAM1959','LAM2016','LAM2680','LAM2957',
+                       'LAM2965','LAM2997','LAM3094','LAM3095','LAM3261','LAM3293',
+                       'LAM3338','LAM3340','LAM3341','LAM3524','LAM3547','LAM3548',
+                       'LAM3585','LAM3590','LAM3592','LAM3605','LAM3629','LAM3657',
+                       'LAM3678','LAM3739','LAM3786','LAM3847','LAM3941','LAM3969',
+                       'LAM4008','LAM4096','LAM4221','LAM4282','LAM4352','LAM4489',
+                       'LAM4502','LAM4503','LAM4510','LAM4511','LAM4597','LAM4649',
+                       'LAM4700','LAM4707','LAM4795','LAM4887','LAM4973','LAM4978',
+                       'LAM4983','LAM5023','LAM5088','LAM5089','LAM5104','LAM5124',
+                       'LAM5129','LAM5170','LAM5172','LAM5175','LAM5225','LAM5281',
+                       'LAM5297','LAM5475','LAM5506','LAM5557','LAM5764','LAM5787',
+                       'LAM5815','LAM5836','LAM5995','LAV0006-00-2021','LAV0006-12',
+                       'LAV0011-14','LAV0012-00-2018','LAV0013-00-2023','LAV0021-00-2023',
+                       'LAV0030-14','LAV0033-00-2015','LAV0033-00-2018','LAV0034-00-2015',
+                       'LAV0035-00-2015','LAV0037-00-2015','LAV0041-13','LAV0043-14',
+                       'LAV0048-00-2015','LAV0049-00-2015','LAV0078-00-2021','LAV0084-13',
+                       'LAV0090-00-2014',]
+            stmt = text(f"""SELECT * FROM {table_name.lower()} WHERE expediente = ANY(:exp)""").bindparams(bindparam("exp", value=expedientes, type_=ARRAY(String)))
+            df = pd.read_sql_query(stmt, con=engine)
             if "geometry" in df.columns:
+                
                 geom_series = df["geometry"]
 
                 # Caso A: ya vienen como objetos shapely (tienen atributo geom_type)

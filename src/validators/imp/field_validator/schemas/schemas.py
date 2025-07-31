@@ -30,7 +30,7 @@ class ErrorType(Enum):
 class TypeErrorData(BaseModel):
     data_type: DataType
     index: int
-    value: Union[str, int, float]
+    value: Union[str, int, float, None]
     
     
 class DomainErrorData(BaseModel):

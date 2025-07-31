@@ -102,7 +102,6 @@ class NaturalLimitsValidator(IValidator):
         self.errors = errors
 
     def validate_inputs(self) -> None:
-        print(type(self.natural_limits))
         if self.natural_limits is None or not isinstance(self.natural_limits, NaturalLimitsInput):
             raise ValueError("❌ ")
     

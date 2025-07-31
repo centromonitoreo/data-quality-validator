@@ -37,6 +37,7 @@ if __name__ == "__main__":
     out_folder = r"D:\Codigos CM\programa_compilacion\areas_compiladas\Actualizacion_Alto Vichada\test"
     thematics = SessionManager().get_session().query(Thematic).all()
     for thematic in thematics:
+
         print(thematic.group_name)
         data = validate_data(
             thematic.group_name,

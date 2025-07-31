@@ -1,9 +1,10 @@
+from sqlalchemy import values
 from validators.interface import IValidator
 from validators.imp.field_validator.schemas.schemas import FieldTypeVerification
 from validators.imp.field_validator.schemas.schemas import FieldTypeVerificationError
 from validators.imp.field_validator.schemas.schemas import TypeErrorData, DomainErrorData, ErrorType, MandatoryErrorData, DataType
 import geopandas as gpd
-from typing import Union, List
+from typing import Union, List, Tuple, Optional
 import pandas as pd
 from rule_access.imp.database_reader.config import engine
 
@@ -35,39 +36,52 @@ class FieldTypeVerificationValidator(IValidator):
     
         
     def validate_doubles(self, values: pd.Series) -> FieldTypeVerificationError:
-        errors = []
+        errors: List[TypeErrorData] = []
         for index, value in values.dropna().items():
             try:
                 converted_value = float(value)
                 values.at[index] = converted_value
             except ValueError:
                 errors.append(TypeErrorData(data_type=DataType.float, index=index, value=value))
-        if errors:
-            return errors
+        return values, errors or None
 
 
     def validate_datetime(self, values: pd.Series) -> FieldTypeVerificationError:
-        errors = []
+        errors: List[TypeErrorData] = []
         for index, value in values.items():
             try:
-                converted_value = pd.to_datetime(value)
+                ts = None
+                for fmt in ("%Y/%m/%d %H:%M:%S%z", "%Y-%m-%d %H:%M:%S%z"):
+                    try:
+                        ts = pd.to_datetime(value, format=fmt, errors="raise")
+                        break  
+                    except (ValueError, TypeError):
+                        continue
+
+                if ts is None:
+                    raise ValueError(f"Unrecognized datetime format: {value!r}")
+
+                # If you need to convert to a specific timezone before formatting (optional):
+                # ts = ts.tz_convert("America/Bogota")
+
+                # Store as string "day/month/year hour:minute:second"
+                converted_value = ts.strftime("%d/%m/%Y %H:%M:%S")
                 values.at[index] = converted_value
+
             except (ValueError, TypeError):
                 errors.append(TypeErrorData(data_type=DataType.datetime, index=index, value=value))
+        return values, errors or None
 
-        if errors:
-            return errors
-
-    def validate_type(self, values:pd.Series, data_type: str, column_name) -> FieldTypeVerificationError:
+    def validate_type(self, values: pd.Series, data_type: str, column_name) -> Tuple[pd.Series, Optional[FieldTypeVerificationError]]:
         error = None
         data_type = DataType(data_type)
         if data_type == DataType.float:
-            error = self.validate_doubles(values)
+            values, error = self.validate_doubles(values)
         elif data_type == DataType.datetime:
-            error = self.validate_datetime(values)
+            values, error = self.validate_datetime(values)
         if error is None:
-            return None
-        return FieldTypeVerificationError(
+            return values, None
+        return values, FieldTypeVerificationError(
                 column=column_name,
                 error_type=ErrorType.type_error,
                 error_data=error
@@ -86,7 +100,8 @@ class FieldTypeVerificationValidator(IValidator):
                     errors.append(errors_domain)
                     continue
 
-            errors_type = self.validate_type(data[column_data.column], column_data.type, column_data.column)
+            values, errors_type = self.validate_type(data[column_data.column], column_data.type, column_data.column)
+            data[column_data.column] = values
             if errors_type is not None:
                 errors.append(errors_type)
         
