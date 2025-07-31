@@ -40,6 +40,8 @@ from rule_access.imp.database_reader.preprocess_data.clean_ids.clean_invalid_ids
 from rule_access.imp.database_reader.preprocess_data.generate_ids.generate_ids import IdGenerator
 from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
 
+from validators.imp.taxonomy.taxonomy_validator import TaxonomyValidator
+
 from typing import List, Dict, Union, Any
 import geopandas as gpd
 import pandas as pd
@@ -91,6 +93,7 @@ class ValidationsEnum(Enum):
     fields_type_verification = FieldTypeVerificationValidator    
     natural_limits = NaturalLimitsValidator
     mandatory_verification = MandatoryVerificationValidator
+    taxonomy_verification = TaxonomyValidator  
 
 class RuleAccessDataBase(IRulesReader):
 
@@ -127,6 +130,8 @@ class RuleAccessDataBase(IRulesReader):
             return self.get_field_type_verification(**kwargs)
         if validator == NaturalLimitsValidator:
             return self.get_natural_limits_values(**kwargs)
+        if validator == TaxonomyValidator:
+            return self.get_taxonomy_data(**kwargs)
         raise("Validator Method is not suscribed")
 
 
@@ -214,3 +219,10 @@ class RuleAccessDataBase(IRulesReader):
             )
 
         return {"natural_limits": inputs_natural_limits} 
+    
+
+
+    def get_taxonomy_data(self, **kwargs) -> Dict[str, Any]:
+        table_name = kwargs['table_name']
+        taxonomy_data = TaxonomyValidator.get_taxonomy_data(table_name)
+        return {"taxonomy_data": taxonomy_data}

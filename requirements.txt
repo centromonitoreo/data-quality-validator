@@ -4,3 +4,7 @@ dotenv
 geopandas
 pandas
 pydantic
+pygbif
+requests
+fuzzywuzzy
+multiprocess

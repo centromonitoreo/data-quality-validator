@@ -53,7 +53,9 @@ class ValidationEngine:
         print("---------------TABLAS------------------------------")
         print({table:len(data) for table, data in self.data.items()})
         for table_name in self.data.keys():
-            self.kwargs['table_name'] = table_name
+            # self.kwargs['table_name'] = table_name
+            self.kwargs['table_name'] = "MuestreoHidrobioTB"
+            table_name = "MuestreoHidrobioTB"
             for validator in self.rules.get_validators(table_name, self.error_handler_name):
                 print(f"----Evaluating {validator.__name__}-{table_name}-----------")
                 kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
