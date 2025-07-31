@@ -10,6 +10,7 @@ from validators.imp.field_validator.field_validator import FieldTypeVerification
 from validators.imp.natural_limits_validator.natural_limits_validator import NaturalLimitsValidator
 from validators.imp.mandatory_validator.mandatory_validator import MandatoryVerificationValidator
 from validators.imp.relationship_validator.relationship_validator import RelationshipDataValidator
+from validators.imp.taxonomy.taxonomy_validator import TaxonomyValidator
 from enum import Enum
 from typing import Dict
 
@@ -62,10 +63,13 @@ class ValidationEngine:
                 validator_inst = validator(**kwargs_validator)
                 validator_inst.validate_inputs()
                 validator_inst.validate(self.data[table_name].copy())
-                errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
-                error_handler = self.error_handler(**errors)
-                error_handler.validate_inputs()
-                self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
+                if validator == TaxonomyValidator:
+                    self.data[table_name] = validator_inst.taxonomy_data
+                else:
+                    errors = validator_inst.error_handler_adapter(self.error_handler, self.kwargs['table_name'])
+                    error_handler = self.error_handler(**errors)
+                    error_handler.validate_inputs()
+                    self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
                 # print({table:len(data) for table, data in self.data.items()})
 
         # thematic validations
