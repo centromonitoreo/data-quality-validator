@@ -38,7 +38,8 @@ class FieldTypeVerificationValidator(IValidator):
         errors = []
         for index, value in values.dropna().items():
             try:
-                float(value)
+                converted_value = float(value)
+                values.at[index] = converted_value
             except ValueError:
                 errors.append(TypeErrorData(data_type=DataType.float, index=index, value=value))
         if errors:
@@ -49,10 +50,11 @@ class FieldTypeVerificationValidator(IValidator):
         errors = []
         for index, value in values.items():
             try:
-                pd.to_datetime(value)
-            except ValueError:
+                converted_value = pd.to_datetime(value)
+                values.at[index] = converted_value
+            except (ValueError, TypeError):
                 errors.append(TypeErrorData(data_type=DataType.datetime, index=index, value=value))
-        
+
         if errors:
             return errors
 
