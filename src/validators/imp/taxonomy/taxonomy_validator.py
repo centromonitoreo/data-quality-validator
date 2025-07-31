@@ -12,6 +12,9 @@ from multiprocess import Pool
 
 from validators.interface import IValidator
 
+from error_handlers.imp.delete_strategy.delete_strategy import DeleteErrorHandler
+from validators.imp.relationship_validator.adapters.delete_errors_handler_adapter import DeleteErrorHandlerAdapter
+
 
 def limpiar_texto(texto: str) -> str:
     """Clean a text value removing special characters and accents."""
@@ -37,10 +40,9 @@ def words_delete(texto: str) -> str:
     return " ".join(palabras_filtradas)
 
 
-def limpiar_data(ruta_excel: str) -> pd.DataFrame:
-    df = pd.read_csv(ruta_excel)
-
-    nombre_genero = "GENERO"
+def limpiar_data(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    nombre_genero = "genero"
     df[nombre_genero] = df[nombre_genero].str.lower()
     df[nombre_genero] = df[nombre_genero].apply(limpiar_texto)
     df[nombre_genero] = df[nombre_genero].apply(lambda x: " ".join(x.split()[:1]))
@@ -48,7 +50,7 @@ def limpiar_data(ruta_excel: str) -> pd.DataFrame:
         r"\b(sp|cf|spp|aff|mf)\b", "", regex=True
     )
 
-    nombre_especie = "ESPECIE"
+    nombre_especie = "especie"
     df[nombre_especie] = df[nombre_especie].str.lower()
     df[nombre_especie] = df[nombre_especie].apply(limpiar_texto)
     df[nombre_especie] = df[nombre_especie].apply(lambda x: " ".join(x.split()[:2]))
@@ -64,23 +66,23 @@ def limpiar_data(ruta_excel: str) -> pd.DataFrame:
 
 
 def contar_palabras_y_modificar(row: pd.Series) -> pd.Series:
-    if (isinstance(row["ESPECIE"], str)) & (isinstance(row["GENERO"], str)):
-        especie = row["ESPECIE"]
-        genero = row["GENERO"]
+    if (isinstance(row["especie"], str)) & (isinstance(row["genero"], str)):
+        especie = row["especie"]
+        genero = row["genero"]
         palabras_especie = especie.split()
         if (len(palabras_especie) == 1) & (not pd.isna(genero)):
             especie = genero + " " + especie
         return especie
-    return row["ESPECIE"]
+    return row["especie"]
 
 
 def ajustar_genero(df: pd.DataFrame) -> pd.DataFrame:
-    df["ESPECIE"].fillna("", inplace=True)
-    df["GENERO"].fillna("", inplace=True)
-    df["ESPECIE"] = df["ESPECIE"].replace({"nan": np.nan})
-    df["GENERO"].fillna("", inplace=True)
-    df["GENERO"] = df["GENERO"].replace({"nan": np.nan})
-    df["ESPECIE"] = df.apply(contar_palabras_y_modificar, axis=1)
+    df["especie"].fillna("", inplace=True)
+    df["genero"].fillna("", inplace=True)
+    df["especie"] = df["especie"].replace({"nan": np.nan})
+    df["genero"].fillna("", inplace=True)
+    df["genero"] = df["genero"].replace({"nan": np.nan})
+    df["especie"] = df.apply(contar_palabras_y_modificar, axis=1)
     return df
 
 
@@ -99,11 +101,11 @@ def probar_conexion():
 
 def evaluar_alternativa(alternativa, dict_taxonomia):
     lista_nombres_definitivos = {
-        "class": "CLASE",
-        "order": "ORDEN",
-        "family": "FAMILIA",
-        "genus": "GENERO",
-        "species": "ESPECIE",
+        "class": "clase",
+        "order": "orden",
+        "family": "familia",
+        "genus": "genero",
+        "species": "especie",
     }
     dict_evaluacion = {}
     for taxonomia, _ in lista_nombres_definitivos.items():
@@ -244,10 +246,10 @@ def taxonomy_validation(argumentos: list) -> dict:
 
 def procesar_taxonomia(biotico: pd.DataFrame) -> dict:
     lista_nombres_definitivos = {
-        "order": "ORDEN",
-        "family": "FAMILIA",
-        "genus": "GENERO",
-        "species": "ESPECIE",
+        "order": "orden",
+        "family": "familia",
+        "genus": "genero",
+        "species": "especie",
     }
     lista_argumentos = []
     for key_fila, row in biotico.iterrows():
@@ -263,9 +265,9 @@ def procesar_taxonomia(biotico: pd.DataFrame) -> dict:
     return result
 
 
-def taxonomy_revision(fila_path: str) -> pd.DataFrame:
+def taxonomy_revision(data: pd.DataFrame) -> pd.DataFrame:
     # Limpiar y ajustar los datos
-    df_limpio_data = limpiar_data(fila_path)
+    df_limpio_data = limpiar_data(data)
     df_genero_limpio = ajustar_genero(df_limpio_data)
 
     # Crear una copia de los datos limpios para procesamiento adicional
@@ -273,28 +275,28 @@ def taxonomy_revision(fila_path: str) -> pd.DataFrame:
 
     # Definir las columnas que se van a actualizar con NaN
     columns_to_update = [
-        "CLASE_SU",
-        "ORDEN_SU",
-        "FAMILIA_SU",
-        "GENERO_SU",
-        "ESPECIE_SU",
+        "clase_su",
+        "orden_su",
+        "familia_su",
+        "genero_su",
+        "especie_su",
         "usageKey",
-        "CORR",
+        "corr",
     ]
     biotico[columns_to_update] = np.nan
 
     # Definir las combinaciones unicas de taxonomia
     taxonomy_columns = [
-        "CLASE",
-        "ORDEN",
-        "FAMILIA",
-        "GENERO",
-        "ESPECIE",
-        "CLASE_SU",
-        "ORDEN_SU",
-        "FAMILIA_SU",
-        "GENERO_SU",
-        "ESPECIE_SU",
+        "clase",
+        "orden",
+        "familia",
+        "genero",
+        "especie",
+        "clase_su",
+        "orden_su",
+        "familia_su",
+        "genero_su",
+        "especie_su",
     ]
 
     df_unicos = (
@@ -315,86 +317,86 @@ def taxonomy_revision(fila_path: str) -> pd.DataFrame:
                 )
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
                 "REINO",
             ] = resultado["alternativa"].get("kingdom", np.nan)
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
-                "CLASE_SU",
+                "clase_su",
             ] = resultado["alternativa"].get("class", np.nan)
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
-                "ORDEN_SU",
+                "orden_su",
             ] = resultado["alternativa"].get("order", np.nan)
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
-                "FAMILIA_SU",
+                "familia_su",
             ] = resultado["alternativa"].get("family", np.nan)
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
-                "GENERO_SU",
+                "genero_su",
             ] = resultado["alternativa"].get("genus", np.nan)
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
-                "ESPECIE_SU",
+                "especie_su",
             ] = resultado["alternativa"].get("species", np.nan)
             biotico.loc[
                 (
-                    (biotico["FAMILIA"] == dict_resultado["family"])
-                    & (biotico["GENERO"] == dict_resultado["genus"])
-                    & (biotico["ESPECIE"] == dict_resultado["species"])
+                    (biotico["familia"] == dict_resultado["family"])
+                    & (biotico["genero"] == dict_resultado["genus"])
+                    & (biotico["especie"] == dict_resultado["species"])
                 ),
-                "CORREL",
+                "correl",
             ] = resultado["coor"]
 
     biotico = biotico.replace({"Sin Dato": np.nan})
-    biotico["CORREL"] = biotico["CORREL"].apply(lambda x: x if isinstance(x, float) else 0)
+    biotico["correl"] = biotico["correl"].apply(lambda x: x if isinstance(x, float) else 0)
     return biotico
 
 
 class TaxonomyValidator(IValidator):
-    def __init__(self):
-        super().__init__()
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not hasattr(self, "taxonomy_data"):
+            self.data = None
 
     def validate(self, data: Dict[str, Any]):
-        """Validate taxonomy information contained in ``data``.
-
-        Parameters
-        ----------
-        data: Dict[str, Any]
-            Path to a CSV file with taxonomy columns.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe with the suggested taxonomy.
-        """
-
+        """Validates the taxonomy data."""
         return taxonomy_revision(data)
 
     def validate_inputs(self):
-        return super().validate_inputs()
+        if self.taxonomy_data is None or not isinstance(
+            self.taxonomy_data, pd.DataFrame
+        ):
+            raise ValueError(
+                "self.data no está definido o no es un DataFrame valido."
+            )
+        
+    def error_handler_adapter(self, error_hadler_strategy, table_name):
+        if error_hadler_strategy == DeleteErrorHandler:
+            return {"delete_errors_input": DeleteErrorHandlerAdapter(self.errors, table_name).adpter_errors()}
 
