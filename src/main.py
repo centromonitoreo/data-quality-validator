@@ -20,9 +20,13 @@ def validate_data(
 def save_data(dict_data, out_folder):
     for keys, data in dict_data.items():
         if isinstance(data, gpd.GeoDataFrame):
-            data.to_file(os.path.join(out_folder, f"{keys}.shp"))
+            try:
+                data.to_file(os.path.join(out_folder, f"{keys}.shp"))
+            except Exception as e:
+                data.to_csv(os.path.join(out_folder, f"{keys}.csv"))
         else:
             data.to_csv(os.path.join(out_folder, f"{keys}.csv"))
+
 
 
 
@@ -30,7 +34,7 @@ if __name__ == "__main__":
     
     load_dotenv()
     pg_conn_string = os.getenv("PG_DATABASE_URL")
-    out_folder = r"D:\1.PROCESOS_CDM\11.CALIDAD_BDC\02.HERRAMIENTAS\Procesos\cienaga\salida"
+    out_folder = r"D:\Codigos CM\programa_compilacion\areas_compiladas\Actualizacion_Alto Vichada\test"
     thematics = SessionManager().get_session().query(Thematic).all()
     for thematic in thematics:
         print(thematic.group_name)

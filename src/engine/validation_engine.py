@@ -54,9 +54,7 @@ class ValidationEngine:
         print("---------------TABLAS------------------------------")
         print({table:len(data) for table, data in self.data.items()})
         for table_name in self.data.keys():
-            # self.kwargs['table_name'] = table_name
-            self.kwargs['table_name'] = "MuestreoHidrobioTB"
-            table_name = "MuestreoHidrobioTB"
+            self.kwargs['table_name'] = table_name
             for validator in self.rules.get_validators(table_name, self.error_handler_name):
                 print(f"----Evaluating {validator.__name__}-{table_name}-----------")
                 kwargs_validator = self.rules.get_validate_args(validator, **self.kwargs)
@@ -70,7 +68,6 @@ class ValidationEngine:
                     error_handler = self.error_handler(**errors)
                     error_handler.validate_inputs()
                     self.data[table_name] = error_handler.handle_table_error(self.data[table_name],self.kwargs['table_name'])
-                # print({table:len(data) for table, data in self.data.items()})
 
         # thematic validations
         print("---------------Tematico------------------------------")
