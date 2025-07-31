@@ -98,8 +98,39 @@ class ValidationsEnum(Enum):
 class RuleAccessDataBase(IRulesReader):
 
     def get_validators(self, table_name: str, error_handler_strategy_name:str) -> List[IValidator]:
-        validations = ValidationServiceImp().get_validations_by_table(table_name, error_handler_strategy_name)
-        return [ValidationsEnum[validation.name].value for validation in validations]
+        validations = ValidationServiceImp().get_validations_by_table(
+            table_name, error_handler_strategy_name
+        )
+
+        validations_names = [validation.name for validation in validations]
+        ordered_names: List[str] = []
+
+        # Core validations are always present
+        for name in [
+            "fields_type_verification",
+            "mandatory_verification",
+        ]:
+            if name in validations_names:
+                ordered_names.append(name)
+
+        # Optional taxonomy validation before duplicated_self_table
+        if "taxonomy_verification" in validations_names:
+            ordered_names.append("taxonomy_verification")
+
+        # Always include duplicated_self_table
+        if "duplicated_self_table" in validations_names:
+            ordered_names.append("duplicated_self_table")
+
+        # Include any other validations except natural_limits, preserving order
+        for name in validations_names:
+            if name not in ordered_names and name != "natural_limits":
+                ordered_names.append(name)
+
+        # Natural limits must always be last if present
+        if "natural_limits" in validations_names:
+            ordered_names.append("natural_limits")
+
+        return [ValidationsEnum[name].value for name in ordered_names]
 
     def get_validators_thematic(self):
         validations = ValidationThematicServiceImp().get_validations_by_thematic(
