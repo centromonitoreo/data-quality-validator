@@ -386,7 +386,7 @@ class TaxonomyValidator(IValidator):
 
     def validate(self, data: Dict[str, Any]):
         """Validates the taxonomy data."""
-        return taxonomy_revision(data)
+        self.taxonomy_data = taxonomy_revision(data)
 
     def validate_inputs(self):
         if self.taxonomy_data is None or not isinstance(
