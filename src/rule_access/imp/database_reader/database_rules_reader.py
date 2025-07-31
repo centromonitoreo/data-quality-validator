@@ -117,6 +117,8 @@ class RuleAccessDataBase(IRulesReader):
         dict_result = process_invalid_ids(data_with_ids)
         clean_dict_result = drop_duplicates(dict_result)
 
+        self.data = clean_dict_result
+
         return clean_dict_result
 
     def get_validate_args(self, validator: IValidator, **kwargs):
@@ -223,6 +225,6 @@ class RuleAccessDataBase(IRulesReader):
 
 
     def get_taxonomy_data(self, **kwargs) -> Dict[str, Any]:
-        table_name = kwargs['table_name']
-        taxonomy_data = TaxonomyValidator.get_taxonomy_data(table_name)
+        table_name = kwargs["table_name"]
+        taxonomy_data = self.data[table_name]
         return {"taxonomy_data": taxonomy_data}
