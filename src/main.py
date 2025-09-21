@@ -2,10 +2,10 @@ import os
 import pickle
 
 from dotenv import load_dotenv
-import geopandas as gpd
 
 from engine.validation_engine import ValidationEngine
-from rule_access.imp.database_reader.config import Base, SessionManager
+from data_access.imp.postgres_reader.postgres_reader import EXPEDIENTES
+from rule_access.imp.database_reader.config import SessionManager
 from rule_access.imp.database_reader.models.thematic import Thematic
 
 
@@ -18,35 +18,32 @@ def validate_data(
     return validation_engine.run()
 
 
-def save_data(dict_data, out_folder, thematic_name):
-    for keys, data in dict_data.items():
-        if isinstance(data, gpd.GeoDataFrame):
-            try:
-                data.to_file(os.path.join(out_folder, f"{keys}.shp"))
-            except Exception as e:
-                data.to_csv(os.path.join(out_folder, f"{keys}.csv"))
-                data.to_excel(os.path.join(out_folder, f"{keys}.xlsx"), engine='openpyxl')
-        else:
-            data.to_csv(os.path.join(out_folder, f"{keys}.csv"))
-            data.to_excel(os.path.join(out_folder, f"{keys}.xlsx"), engine='openpyxl')
-
-    with open(os.path.join(out_folder, f"data_{thematic_name}.pkl"), "wb") as f:
+def save_data(dict_data, out_folder, expediente_name):
+    os.makedirs(out_folder, exist_ok=True)
+    with open(os.path.join(out_folder, f"{expediente_name}.pkl"), "wb") as f:
         pickle.dump(dict_data, f)
-    
+
 if __name__ == "__main__":
-    
+
     load_dotenv()
     pg_conn_string = os.getenv("PG_DATABASE_URL")
     out_folder = r"D:\Codigos CM\programa_compilacion\areas_compiladas\luisa"
-    thematics = SessionManager().get_session().query(Thematic).all()
-    for thematic in thematics:
+    session = SessionManager().get_session()
+    thematics = session.query(Thematic).all()
 
-        print(thematic.group_name)
-        data = validate_data(
-            thematic.group_name,
-            "database_rule_reader",
-            "delete_strategy",
-            "postgres_reader",
-            pg_conn_string=pg_conn_string,
-        )
-        save_data(data, out_folder, thematic.group_name)
+    for expediente in EXPEDIENTES:
+        print(f"Procesando expediente: {expediente}")
+        expediente_data = {}
+        for thematic in thematics:
+            print(thematic.group_name)
+            data = validate_data(
+                thematic.group_name,
+                "database_rule_reader",
+                "delete_strategy",
+                "postgres_reader",
+                pg_conn_string=pg_conn_string,
+                expediente=expediente,
+            )
+            expediente_data[thematic.group_name] = data
+
+        save_data(expediente_data, out_folder, expediente)

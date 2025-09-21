@@ -10,6 +10,82 @@ from sqlalchemy import String
 from data_access.interface import IDataReader
 
 
+EXPEDIENTES = [
+    "LAM0237",
+    "LAM4037",
+    "LAM0112",
+    "LAM2583",
+    "LAM2577",
+    "LAM2142",
+    "LAM3575",
+    "LAM3823",
+    "LAM2578",
+    "LAM2575",
+    "LAM2574",
+    "LAM3888",
+    "LAM2576",
+    "LAM4090",
+    "LAM0005",
+    "LAM0514",
+    "LAM1582",
+    "LAM2230",
+    "LAM2233",
+    "LAM2582",
+    "LAM2611",
+    "LAM2223",
+    "LAM0529",
+    "LAM0261",
+    "LAM4697",
+    "LAM0058",
+    "LAM2581",
+    "LAM3948",
+    "LAM3563",
+    "LAV0021-00-2021",
+    "LAM9086-00",
+    "LAV0070-00-2017",
+    "LAM1094",
+    "LAM3491",
+    "LAM2622",
+    "LAM5801",
+    "LAM3831",
+    "LAM1862",
+    "LAM5688",
+    "LAV0029-00-2016",
+    "LAM3271",
+    "LAM0027",
+    "LAM3199",
+    "LAM1748",
+    "LAM6086",
+    "LAM4031",
+    "LAM0408",
+    "LAM1203",
+    "LAV0018-00-2015",
+    "LAM1403",
+    "LAM1499",
+    "LAM6153",
+    "LAM0579",
+    "LAM0806",
+    "LAM0530",
+    "LAM0626",
+    "LAM4567",
+    "LAM2347",
+    "LAV0050-13",
+    "LAM4924",
+    "LAM1821",
+    "LAM3830",
+    "LAV0052-00-2019",
+    "LAV0002-00-2020",
+    "LAM8418-00",
+    "LAM9389-00",
+    "LAM9139-00",
+    "LAV0012-00-2023",
+    "LAM9182-00",
+    "LAV0034-00-2023",
+]
+
+expedientes = EXPEDIENTES
+
+
 class PostgresReader(IDataReader):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -23,24 +99,27 @@ class PostgresReader(IDataReader):
 
         engine = create_engine(self.pg_conn_string)
         try:
-            # Expedientes organizados alfabéticamente
-            expedientes = [
-                'LAM0237','LAM4037','LAM0112','LAM2583','LAM2577','LAM2142','LAM3575','LAM3823',
-                'LAM2578','LAM2575','LAM2574','LAM3888','LAM2576','LAM4090','LAM0005','LAM0514',
-                'LAM1582','LAM2230','LAM2233','LAM2582','LAM2611','LAM2223','LAM0529','LAM0261',
-                'LAM4697','LAM0058','LAM2581','LAM3948','LAM3563','LAV0021-00-2021','LAM9086-00',
-                'LAV0070-00-2017','LAM1094','LAM3491','LAM2622','LAM5801','LAM3831','LAM1862',
-                'LAM5688','LAV0029-00-2016','LAM3271','LAM0027','LAM3199','LAM1748','LAM6086',
-                'LAM4031','LAM0408','LAM1203','LAV0018-00-2015','LAM1403','LAM1499','LAM6153',
-                'LAM0579','LAM0806','LAM0530','LAM0626','LAM4567','LAM2347','LAV0050-13','LAM4924',
-                'LAM1821','LAM3830','LAV0052-00-2019','LAV0002-00-2020','LAM8418-00','LAM9389-00',
-                'LAM9139-00','LAV0012-00-2023','LAM9182-00','LAV0034-00-2023'
-            ]
-            stmt = text(f"""SELECT * FROM {table_name.lower()} WHERE expediente = ANY(:exp)""").bindparams(bindparam("exp", value=expedientes, type_=ARRAY(String)))
-            # stmt = text(f"SELECT * FROM {table_name.lower()}")
+            filter_values = getattr(self, "expediente", None)
+            if filter_values is None:
+                filter_values = getattr(self, "expedientes", EXPEDIENTES)
+
+            if isinstance(filter_values, str):
+                filter_values = [filter_values]
+
+            if filter_values:
+                stmt = (
+                    text(
+                        f"""SELECT * FROM {table_name.lower()} WHERE expediente = ANY(:exp)"""
+                    )
+                    .bindparams(
+                        bindparam("exp", value=filter_values, type_=ARRAY(String))
+                    )
+                )
+            else:
+                stmt = text(f"SELECT * FROM {table_name.lower()}")
             df = pd.read_sql_query(stmt, con=engine)
             if "geometry" in df.columns:
-                
+
                 geom_series = df["geometry"]
 
                 # Caso A: ya vienen como objetos shapely (tienen atributo geom_type)
