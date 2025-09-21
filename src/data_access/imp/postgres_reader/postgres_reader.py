@@ -23,25 +23,21 @@ class PostgresReader(IDataReader):
 
         engine = create_engine(self.pg_conn_string)
         try:
-            expedientes = ['LAM0019','LAM0165','LAM0226','LAM0471','LAM0472','LAM1235',
-                       'LAM1437','LAM1700','LAM1959','LAM2016','LAM2680','LAM2957',
-                       'LAM2965','LAM2997','LAM3094','LAM3095','LAM3261','LAM3293',
-                       'LAM3338','LAM3340','LAM3341','LAM3524','LAM3547','LAM3548',
-                       'LAM3585','LAM3590','LAM3592','LAM3605','LAM3629','LAM3657',
-                       'LAM3678','LAM3739','LAM3786','LAM3847','LAM3941','LAM3969',
-                       'LAM4008','LAM4096','LAM4221','LAM4282','LAM4352','LAM4489',
-                       'LAM4502','LAM4503','LAM4510','LAM4511','LAM4597','LAM4649',
-                       'LAM4700','LAM4707','LAM4795','LAM4887','LAM4973','LAM4978',
-                       'LAM4983','LAM5023','LAM5088','LAM5089','LAM5104','LAM5124',
-                       'LAM5129','LAM5170','LAM5172','LAM5175','LAM5225','LAM5281',
-                       'LAM5297','LAM5475','LAM5506','LAM5557','LAM5764','LAM5787',
-                       'LAM5815','LAM5836','LAM5995','LAV0006-00-2021','LAV0006-12',
-                       'LAV0011-14','LAV0012-00-2018','LAV0013-00-2023','LAV0021-00-2023',
-                       'LAV0030-14','LAV0033-00-2015','LAV0033-00-2018','LAV0034-00-2015',
-                       'LAV0035-00-2015','LAV0037-00-2015','LAV0041-13','LAV0043-14',
-                       'LAV0048-00-2015','LAV0049-00-2015','LAV0078-00-2021','LAV0084-13',
-                       'LAV0090-00-2014',]
+            # Expedientes organizados alfabéticamente
+            expedientes = [
+                'LAM0237','LAM4037','LAM0112','LAM2583','LAM2577','LAM2142','LAM3575','LAM3823',
+                'LAM2578','LAM2575','LAM2574','LAM3888','LAM2576','LAM4090','LAM0005','LAM0514',
+                'LAM1582','LAM2230','LAM2233','LAM2582','LAM2611','LAM2223','LAM0529','LAM0261',
+                'LAM4697','LAM0058','LAM2581','LAM3948','LAM3563','LAV0021-00-2021','LAM9086-00',
+                'LAV0070-00-2017','LAM1094','LAM3491','LAM2622','LAM5801','LAM3831','LAM1862',
+                'LAM5688','LAV0029-00-2016','LAM3271','LAM0027','LAM3199','LAM1748','LAM6086',
+                'LAM4031','LAM0408','LAM1203','LAV0018-00-2015','LAM1403','LAM1499','LAM6153',
+                'LAM0579','LAM0806','LAM0530','LAM0626','LAM4567','LAM2347','LAV0050-13','LAM4924',
+                'LAM1821','LAM3830','LAV0052-00-2019','LAV0002-00-2020','LAM8418-00','LAM9389-00',
+                'LAM9139-00','LAV0012-00-2023','LAM9182-00','LAV0034-00-2023'
+            ]
             stmt = text(f"""SELECT * FROM {table_name.lower()} WHERE expediente = ANY(:exp)""").bindparams(bindparam("exp", value=expedientes, type_=ARRAY(String)))
+            # stmt = text(f"SELECT * FROM {table_name.lower()}")
             df = pd.read_sql_query(stmt, con=engine)
             if "geometry" in df.columns:
                 

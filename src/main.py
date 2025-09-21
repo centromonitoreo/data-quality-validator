@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from dotenv import load_dotenv
 import geopandas as gpd
@@ -17,24 +18,26 @@ def validate_data(
     return validation_engine.run()
 
 
-def save_data(dict_data, out_folder):
+def save_data(dict_data, out_folder, thematic_name):
     for keys, data in dict_data.items():
         if isinstance(data, gpd.GeoDataFrame):
             try:
                 data.to_file(os.path.join(out_folder, f"{keys}.shp"))
             except Exception as e:
                 data.to_csv(os.path.join(out_folder, f"{keys}.csv"))
+                data.to_excel(os.path.join(out_folder, f"{keys}.xlsx"), engine='openpyxl')
         else:
             data.to_csv(os.path.join(out_folder, f"{keys}.csv"))
+            data.to_excel(os.path.join(out_folder, f"{keys}.xlsx"), engine='openpyxl')
 
-
-
-
+    with open(os.path.join(out_folder, f"data_{thematic_name}.pkl"), "wb") as f:
+        pickle.dump(dict_data, f)
+    
 if __name__ == "__main__":
     
     load_dotenv()
     pg_conn_string = os.getenv("PG_DATABASE_URL")
-    out_folder = r"D:\Codigos CM\programa_compilacion\areas_compiladas\Actualizacion_Alto Vichada\test"
+    out_folder = r"D:\Codigos CM\programa_compilacion\areas_compiladas\luisa"
     thematics = SessionManager().get_session().query(Thematic).all()
     for thematic in thematics:
 
@@ -46,4 +49,4 @@ if __name__ == "__main__":
             "postgres_reader",
             pg_conn_string=pg_conn_string,
         )
-        save_data(data, out_folder)
+        save_data(data, out_folder, thematic.group_name)
