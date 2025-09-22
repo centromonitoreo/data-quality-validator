@@ -44,7 +44,14 @@ class ValidationEngine:
 
     def run(self):
         self.data = self.rules.get_data(self.reader)
-                
+
+        if not self._has_data():
+            print(
+                f"No se encontró información para el temático '{self.thematic}'. "
+                "Se omite la validación."
+            )
+            return self.data
+
         # table validations
         print("---------------TABLAS------------------------------")
         print({table:len(data) for table, data in self.data.items()})
@@ -82,3 +89,21 @@ class ValidationEngine:
             self.data = error_handler.handle_thematic_error(self.data.copy())
             print({table:len(data) for table, data in self.data.items()})
         return self.data
+
+    def _has_data(self) -> bool:
+        if not self.data:
+            return False
+
+        for table_data in self.data.values():
+            if table_data is None:
+                continue
+            if hasattr(table_data, "empty"):
+                if not table_data.empty:
+                    return True
+            else:
+                try:
+                    if len(table_data) > 0:
+                        return True
+                except TypeError:
+                    continue
+        return False
